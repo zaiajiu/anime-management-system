@@ -7,6 +7,7 @@ ui/.vite/
 bookSystem/target/
 bookSystem/uploads/
 bookSystem/logs/
+bookSystem/src/main/resources/application.properties
 
 # 系统与编辑器忽略
 .DS_Store
