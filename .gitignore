@@ -1,0 +1,15 @@
+# 前端忽略
+ui/node_modules/
+ui/dist/
+ui/.vite/
+
+# 后端忽略（虽然 backend 里面已经有了，再写一次也无妨，双保险）
+bookSystem/target/
+bookSystem/uploads/
+bookSystem/logs/
+
+# 系统与编辑器忽略
+.DS_Store
+.idea/
+*.iml
+.vscode/
