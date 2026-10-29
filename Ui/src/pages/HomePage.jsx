@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { NewspaperIcon, SparklesIcon } from 'lucide-react';
+import { getNewspaperNews } from '@/api/Newspaper'; 
 
 export default function HomePage() {
   var newsState = useState([]); var news = newsState[0]; var setNews = newsState[1];
@@ -9,16 +10,24 @@ export default function HomePage() {
   var loadingState = useState(true); var loading = loadingState[0]; var setLoading = loadingState[1];
 
   // 获取早报数据
-  useEffect(function () {
-    setTimeout(function () {
-      var mockData = {
-        date: '2026年10月28日',
-        text: '1. OpenAI 发布全新多模态模型，代码能力大幅提升。\n2. Spring Boot 3.4 版本正式发布，全面拥抱虚拟线程。\n3. 2026 届秋招落幕，Java 岗位要求明显向全栈转移。\n4. DeepSeek 接入各大办公软件，打工人效率翻倍。'
-      };
-      setNews(mockData.text);
-      setDate(mockData.date);
-      setLoading(false);
-    }, 500);
+   useEffect(function () {
+    setLoading(true);
+    getNewspaperNews()
+      .then(function (res) {
+        if (res.success) {
+          // 注意这里：后端返回的结构是 data: { date: 'xxx', text: 'xxx' }
+          setNews(res.data.text); 
+          setDate(res.data.date);
+        } else {
+          toast.error(res.message);
+        }
+      })
+      .catch(function (error) {
+        toast.error('网络异常，早报加载失败');
+      })
+      .finally(function () {
+        setLoading(false);
+      });
   }, []);
 
   return (
