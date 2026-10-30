@@ -20,6 +20,22 @@ function checkLoginStatus(json) {
   }
   return json;
 }
+//获取token,用于防重提交
+export async function fetchGetSubmitToken(){
+  var url = BASE_URL + '/getSubmitToken';
+  return fetch(url, { method: 'GET', credentials: 'include' })
+  .then(checkResponseStatus)
+    .then(function (response) { return response.json(); })
+    .then(function (json) {
+      json = checkLoginStatus(json);
+      return json;
+    })
+    .catch(function (error) {
+      logger.error('animeApi', '获取token失败', error);
+      throw error;
+    });
+  
+}
 
 // ============================================================
 // 1. 获取分页列表：GET /api/anime/list?page=1
@@ -82,7 +98,7 @@ export function fetchAnimeByName(animeName) {
 }
 
 // ============================================================
-// 4. 其他接口（保持不变）
+// 4. 其他接口
 // ============================================================
 export function fetchAnimeById(id) {
   return fetch(BASE_URL + '/' + id, { method: 'GET', credentials: 'include' })
@@ -96,6 +112,8 @@ export function createAnime(params) {
   formData.append('animeName', params.animeName);
   formData.append('animeIntroduction', params.animeIntroduction || '');
   formData.append('animeComment', params.animeComment || '');
+  logger.info("animeApi","token:",params.token);
+  if (params.Token) formData.append('token',params.Token);
   if (params.image) formData.append('image', params.image);
 
   return fetch(BASE_URL, { method: 'POST', credentials: 'include', body: formData })

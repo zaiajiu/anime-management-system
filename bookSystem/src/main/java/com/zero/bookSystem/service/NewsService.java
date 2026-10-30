@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class NewsService {
         callDeepSeekApi();
     }
     /**
-     * 获取今日早报（核心逻辑：先查库，没有再调 AI）
+     * 获取今日报文（核心逻辑：先查库，没有再调 AI）
      */
     public DailyNews getTodayNews() {
         String today = LocalDate.now().toString();
@@ -56,8 +57,14 @@ public class NewsService {
      * 调用 DeepSeek API
      */
     private String callDeepSeekApi() {
-
         String today = LocalDate.now().toString();
+        int hour = LocalTime.now().getHour();
+        String newsType = "早报";
+        if (hour >= 12 && hour <= 16) {
+            newsType = "午报";
+        } else if (hour >= 17) {
+            newsType = "晚报";
+        }
         String apiUrl = "https://api.deepseek.com/chat/completions";
 
         // 设置请求头
@@ -73,20 +80,20 @@ public class NewsService {
 
         Map<String, String> systemMsg = new HashMap<>();
         systemMsg.put("role", "system");
-        systemMsg.put("content", "你是一个元气满满，幽默风趣的二次元电台播音员。请用非常接地气的，带有一些轻微二次元元素的，带有鼓励意味的语气生成一段刊文。不要输出多余的废话。"+
-                "规则：" +
-                "1. 每条字数在 35 字以内。" +
-                "2. 必须带点幽默感或吐槽，千万别像官方新闻稿那么死板。" +
-                "3. 适当使用 emoji 表情包增加活力。" +
-                "4. 不要输出多余的开场白。"+
-                "5. 开场白简短，只需要带有时间+问候，例如‘现在是某年+某月+某天+早上/中文/下午。今天是新的开始或今早有发生什么有趣的事吗或者今天结束了，好好吃饭真棒呢’。按照当天时段进行随机变化"+
-                "6. 必须是积极，带有轻微鼓励，关心的语气。适当运用二次元，动漫的人物，事件等"+
-                "7. 当前时间为0-11时生成早报，12-16时生成午报，17-23时生成晚报。");
+        systemMsg.put("content", "你是一个温柔的邻家大姐姐，生成一段"+newsType+"。不要输出多余的废话。"+
+                "要求：" +
+                "1. 字数在 100 字左右。" +
+                "2. 注意语气要接地气" +
+                "3. 不要安慰，不要劝人积极向上，轻微给予关心与理解，并且关心点到为止即可" +
+                "4. 要让人感到这里可以是舒服放松休息的港湾"+
+                "5. 开场白简短，只需要带有时间+问候。不要说例如“早报来了”等出戏的话。"+
+                "6. 话语不要太刻意，以上规则是方向，不要像完成任务一样"+
+                "7. 像朋友聊天一样，适量地引入关于动漫梗参与对话，开开玩笑，不要出现动漫名字和角色名字");
         messages.add(systemMsg);
 
         Map<String, String> userMsg = new HashMap<>();
         userMsg.put("role", "user");
-        userMsg.put("content", "请生成当前时段的报文。");
+        userMsg.put("content", "请生成当前时段的"+newsType+"。");
         messages.add(userMsg);
 
         requestBody.put("messages", messages);
@@ -106,7 +113,7 @@ public class NewsService {
                 newNews.setNewsDate(today);
                 newNews.setContent((String) message.get("content"));
                 NewsDao.insert(newNews);
-                logger.info("报文已生成并成功保存至数据库");
+                logger.info(newsType+"已生成并成功保存至数据库");
                 return null;
             }
         } catch (Exception e) {

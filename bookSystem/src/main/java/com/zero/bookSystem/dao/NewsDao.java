@@ -33,7 +33,7 @@ public class NewsDao {
 
     // 插入早报
     public static boolean insert(DailyNews news) {
-        String sql = "INSERT INTO daily_news(news_date, content) VALUES (?, ?)";
+        String sql = "REPLACE INTO daily_news(news_date, content) VALUES (?, ?)";
         try (Connection conn = config.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, news.getNewsDate());

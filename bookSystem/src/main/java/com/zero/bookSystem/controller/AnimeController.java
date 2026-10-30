@@ -103,7 +103,7 @@ public class AnimeController {
     ) {
         // 1. 从 Session 获取之前存的 token
         String sessionToken = (String) request.getSession().getAttribute("submit_token");
-
+        logger.info("token={}", sessionToken);
         // 2. 校验：前端传的 token 和 Session 里的不一致，或者 Session 里为空（说明已经被删了）
         if (sessionToken == null || !sessionToken.equals(token)) {
             return Result.fail("请勿重复提交！");
@@ -112,9 +112,9 @@ public class AnimeController {
         // 3. 核心：校验通过，立刻把 Session 里的 token 删掉！
         // 这样即使紧接着发来第二个请求，也会因为 token 为 null 而被拦截。
         request.getSession().removeAttribute("submit_token");
-        // userId 从 Session 取（上一轮已实现）
+        // userId 从 Session 取
         Integer userId = (Integer) request.getSession().getAttribute("userId");
-        if (userId == null) return Result.fail("未登录2");
+        if (userId == null) return Result.fail("未登录");
 
         try {
             // ① 保存文件并得到相对路径

@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import AddAnimeDialog from '@/components/AddAnimeDialog';
-import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount } from '@/api/anime';
+import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount} from '@/api/anime';
 import logger from '@/utils/logger';
 import { toast } from 'sonner'; // ★ 引入
 

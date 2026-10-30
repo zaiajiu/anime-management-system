@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { createAnime } from "@/api/anime"
+import { createAnime} from "@/api/anime"
+import { fetchGetSubmitToken } from "@/api/anime";
+import { useState, useRef, useEffect } from "react";
 import logger from '@/utils/logger';
 import { toast } from 'sonner'; // ★ 引入
 
@@ -43,17 +45,36 @@ export default function AddAnimeDialog({ open, onOpenChange, onSuccess }) {
     setPreview(URL.createObjectURL(file))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!form.animeName.trim()) return toast.error("请输入动漫名称")
+var [submitToken, setSubmitToken] = useState(""); // ★ 存 Token 的状态
 
+  // ★ 核心：只要弹窗打开 (open === true)，就去请求 Token
+  useEffect(function () {
+    if (open === true) {
+      fetchGetSubmitToken()
+        .then(function (res) {
+          if (res.success) {
+            setSubmitToken(res.data); // 把后端给的 Token 存起来
+          }
+        })
+        .catch(function (err) {
+          console.error("获取防重Token失败", err);
+        });
+    }
+  }, [open]); // 监听 open 的变化
+
+  const handleSubmit = async (e) => {
+    
+    e.preventDefault()
+    if (!form.animeName.trim()) return toast.error("请输入动漫名称");
     try {
+      logger.info("addAnimeDialog","token:",submitToken);
       setSubmitting(true)
-      const res = await createAnime({ ...form, image: coverFile })
+      const res = await createAnime({ ...form, image: coverFile, Token: submitToken  })
       if (!res.success) {
         toast.error(res.message)
         return
-      }else{
+      }
+      else{
         toast.success("新建成功")
       }
       onSuccess?.(res.data)
