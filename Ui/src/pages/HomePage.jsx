@@ -35,7 +35,7 @@ export default function HomePage() {
       
       {/* 顶部欢迎语 */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">你好，欢迎回来！</h1>
+        <h2 className="text-3xl font-bold tracking-tight">你好，欢迎回来！</h2>
         <p className="text-muted-foreground mt-2">
           今天是 {date}，祝你度过愉快的一天。
         </p>
@@ -49,13 +49,6 @@ export default function HomePage() {
           <CardHeader className="flex flex-row items-center gap-4 pb-2">
             <div className="p-2 bg-primary/10 rounded-full text-primary">
               <NewspaperIcon className="size-6" />
-            </div>
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
-                每日早报
-                <SparklesIcon className="size-4 text-yellow-500" />
-              </CardTitle>
-              <CardDescription>每天 3 分钟，知晓天下事</CardDescription>
             </div>
           </CardHeader>
           

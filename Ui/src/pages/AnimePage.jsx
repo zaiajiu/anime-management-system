@@ -297,9 +297,12 @@ export default function AnimePage() {
             var isSelected = selectedIds.indexOf(item.id) !== -1;
             return (
               <Card key={item.id} onClick={function () { handleCardClick(item); }}
-                className={'overflow-hidden pt-0 relative ' + (editMode ? 'cursor-pointer ' : '') + (isSelected ? 'ring-2 ring-primary' : '')}>
+                className={'overflow-hidden pt-0 relative ' + 
+                  'hover:-translate-y-1 hover:shadow-lg ' +
+                  'active:scale-95 ' +
+                   (editMode ? 'cursor-pointer ' : '') + (isSelected ? 'ring-2 ring-primary' : '')}>
                 {/* 封面图 */}
-                <img src={getImageUrl(item.imagePath)} alt={item.animeName} className="w-full aspect-[3/4] object-cover bg-muted" onError={handleImageError} />
+                <img src={getImageUrl(item.imagePath)} alt={item.animeName} className="w-full aspect-[3/4] object-cover bg-muted transition-transform duration-500 hover:scale-105" onError={handleImageError} />
                 {/* 标题 */}
                 <CardContent className="p-3"><CardTitle className="text-sm line-clamp-1">{item.animeName}</CardTitle></CardContent>
                 {/* 编辑模式下的右下角勾选圈 */}
