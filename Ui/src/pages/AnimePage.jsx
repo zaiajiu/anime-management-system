@@ -12,7 +12,9 @@ import {
 import AddAnimeDialog from '@/components/AddAnimeDialog';
 import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount} from '@/api/anime';
 import logger from '@/utils/logger';
-import { toast } from 'sonner'; // ★ 引入
+import { toast } from 'sonner'; 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowUpDown } from 'lucide-react';
 
 // 全局配置
 var BACKEND = 'http://localhost:8080';
@@ -69,6 +71,9 @@ export default function AnimePage() {
   // 用于搜索防抖的定时器（用 useRef 存，避免组件重新渲染时丢失）
   var searchTimerRef = useRef(null);
 
+  var sortFieldState = useState('id'); var sortField = sortFieldState[0]; var setSortField = sortFieldState[1];
+  var sortOrderState = useState('DESC'); var sortOrder = sortOrderState[0]; var setSortOrder = sortOrderState[1];
+
   // ============================================================
   // 核心业务方法 (Functions)
   // ============================================================
@@ -77,11 +82,13 @@ export default function AnimePage() {
    * 加载分页数据和总数
    * @param {number} targetPage - 要加载的页码（比如第 2 页）
    */
-  function loadPageList(targetPage) {
+  function loadPageList(targetPage,field=sortField,order=sortOrder) {
+    var currentField = field || sortField;
+    var currentOrder = order || sortOrder;
     setLoading(true);
 
     // 1. 发起请求：查询当前页的动漫列表
-    fetchAnimeList(targetPage)
+    fetchAnimeList(targetPage,field,order)
       .then(function (res) {
         if (res.success) {
           setList(res.data || []); // 后端返回的是数组，直接存进 list 状态
@@ -92,7 +99,7 @@ export default function AnimePage() {
       .catch(function (error) { logger.error('AnimePage', '加载列表失败', error); })
       .finally(function () { setLoading(false); }); // 无论成功失败，停止 loading
 
-    // 2. 发起请求：查询总数（为了算总页数）
+    // 2. 发起请求：查询总数
     fetchAnimeCount()
       .then(function (res) {
         if (res.success) {
@@ -260,13 +267,49 @@ export default function AnimePage() {
   // ============================================================
   return (
     <div className="p-4 space-y-6 pb-24">
-      {/* 顶部工具栏：搜索框 + 编辑按钮 */}
+      {/* 顶部工具栏*/}
       <div className="flex items-center gap-4">
         <InputGroup className="max-w-sm">
           <InputGroupInput placeholder="搜索动漫名称..." value={keyword} onChange={handleKeywordChange} />
           <InputGroupAddon><SearchIcon className="text-muted-foreground" /></InputGroupAddon>
           <InputGroupAddon align="inline-end"><Kbd>⌘K</Kbd></InputGroupAddon>
         </InputGroup>
+        <div className="flex items-center gap-2 ml-4">
+    <Select 
+      value={sortField} 
+      onValueChange={function(value) {
+        setSortField(value);
+        loadPageList(1, value, sortOrder); // 切换字段时，回到第一页
+      }}
+    >
+      <SelectTrigger className="w-[120px]">
+        <SelectValue placeholder="排序方式">
+      {sortField === 'id' ? '默认 (ID)' : 
+       sortField === 'name' ? '按名称' :
+       sortField === 'createTime' ? '按创建时间' : '按修改时间'}
+    </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="id">默认 (ID)</SelectItem>
+        <SelectItem value="name">按名称</SelectItem>
+        <SelectItem value="createTime">按创建时间</SelectItem>
+        <SelectItem value="updateTime">按修改时间</SelectItem>
+      </SelectContent>
+    </Select>
+
+    {/* 顺序/倒序切换按钮 */}
+    <Button 
+      variant="outline" 
+      onClick={function() {
+        var newOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
+        setSortOrder(newOrder);
+        loadPageList(1, sortField, newOrder); // 切换顺序时，回到第一页
+      }}
+    >
+      <ArrowUpDown className="size-4 mr-2" />
+      {sortOrder === 'DESC' ? '倒序' : '顺序'}
+    </Button>
+  </div>
         <div className="ml-auto">
           {editMode === false ? (
             <Button variant="outline" onClick={enterEditMode}><EditIcon className="size-4 mr-2" />编辑</Button>

@@ -48,10 +48,12 @@ public class AnimeController {
     @GetMapping("/list")
     public Result<List<Animes>> list(HttpServletRequest request,
                                      @RequestParam(defaultValue = "1") int page,
-                                     @RequestParam(defaultValue = "9") int size) {
+                                     @RequestParam(defaultValue = "9") int size,
+                                     @RequestParam(defaultValue = "id") String sortField,
+                                     @RequestParam(defaultValue = "DESC") String sortOrder) {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         int offset=(page-1)*size;
-        List<Animes> data = animeService.listAll(userId,offset,size);
+        List<Animes> data = animeService.listAll(userId,offset,size,sortField,sortOrder);
         logger.info("传回前端数据数量："+data.size());
         return Result.ok(data);
     }

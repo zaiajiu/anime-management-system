@@ -13,8 +13,8 @@ import java.util.List;
 @Service
 public class AnimeService {
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
-    public List<Animes> listAll(Integer userId,int offset,int size) {
-        return AnimeDao.findAnimeAll(userId,offset,size);
+    public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder) {
+        return AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
     }
 
 

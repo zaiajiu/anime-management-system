@@ -40,15 +40,18 @@ export async function fetchGetSubmitToken(){
 // ============================================================
 // 1. 获取分页列表：GET /api/anime/list?page=1
 // ============================================================
-export function fetchAnimeList(page) {
+export function fetchAnimeList(page,sortField,sortOrder) {
   var currentPage = page || 1;
-  var url = BASE_URL + '/list?page=' + currentPage;
+  var field = sortField || 'id';
+  var order = sortOrder || 'DESC';
+  var url = BASE_URL + '/list?page=' + currentPage + '&sortField=' + field + '&sortOrder=' + order;
 
   return fetch(url, { method: 'GET', credentials: 'include' })
     .then(checkResponseStatus)
     .then(function (response) { return response.json(); })
     .then(function (json) {
       json = checkLoginStatus(json);
+      
       return json;
     })
     .catch(function (error) {

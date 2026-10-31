@@ -62,17 +62,27 @@ import org.slf4j.LoggerFactory;
             }
             return 0;
         }
-        //变量page代表用户查看的页数
         //size代表每页数据数量
         //sort代表查询结果按什么方式排序，例如按id排序，按名字排序等
         //order代表排序是顺序还是倒序
-        public  static List<Animes> findAnimeAll(Integer userId,int offset,int size)
+        public  static List<Animes> findAnimeAll(Integer userId,int offset,int size, String sortField, String sortOrder)
         {
             List<Animes> AnimesListAll=new ArrayList<Animes>();
-            System.out.println("offset:"+offset);
-            System.out.println("size:"+size);
-            String sql="SELECT * FROM anime WHERE user_id = ? ORDER BY id DESC LIMIT ?, ?";
-
+            // ★ 1. 白名单校验：把前端传的字段映射到数据库真实字段
+            String dbColumn = "id"; // 默认
+            if ("name".equals(sortField)) {
+                dbColumn = "anime_name";
+            } else if ("createTime".equals(sortField)) {
+                dbColumn = "create_time";
+            } else if ("updateTime".equals(sortField)) {
+                dbColumn = "update_time";
+            }
+            // ★ 2. 校验排序方向
+            String order = "DESC";
+            if ("ASC".equalsIgnoreCase(sortOrder)) {
+                order = "ASC";
+            }
+            String sql="SELECT * FROM anime WHERE user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
             try(Connection conn = config.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 )
@@ -100,6 +110,7 @@ import org.slf4j.LoggerFactory;
                 e.printStackTrace();
             }
             logger.info("数据库查询全部动漫共"+AnimesListAll.size()+"条");
+            System.out.println(AnimesListAll);
             return AnimesListAll;
         }
 
