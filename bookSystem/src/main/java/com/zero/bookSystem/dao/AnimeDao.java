@@ -114,6 +114,35 @@ import org.slf4j.LoggerFactory;
             return AnimesListAll;
         }
 
+    /**
+     * 查询某个用户的全部动漫（用于内存拼音排序）
+     */
+    public static List<Animes> findAllByName(Integer userId) {
+        List<Animes> list = new ArrayList<>();
+        String sql = "SELECT * FROM anime WHERE user_id = ?";
+        try (Connection conn = config.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Animes z = new Animes();
+                    z.setId(rs.getInt("id"));
+                    z.setImagePath(rs.getString("image_path"));
+                    z.setAnimeName(rs.getString("anime_name"));
+                    z.setUserId(rs.getInt("user_id"));
+                    z.setAnimeIntroduction(rs.getString("anime_introduction"));
+                    z.setAnimeComment(rs.getString("anime_comment"));
+                    z.setCreateTime(rs.getString("create_time"));
+                    z.setUpdateTime(rs.getString("update_time"));
+                    list.add(z);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
         //按名字
         public static List<Animes>  findAnimesName(String animeName,Integer userId)
         {

@@ -53,7 +53,7 @@ public class AnimeController {
                                      @RequestParam(defaultValue = "DESC") String sortOrder) {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         int offset=(page-1)*size;
-        List<Animes> data = animeService.listAll(userId,offset,size,sortField,sortOrder);
+        List<Animes> data = animeService.listAll(userId,offset,size,sortField,sortOrder,page);
         logger.info("传回前端数据数量："+data.size());
         return Result.ok(data);
     }
