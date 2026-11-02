@@ -16,42 +16,8 @@ import java.util.List;
 @Service
 public class AnimeService {
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
-    public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder,Integer page) {
-        if (!"name".equals(sortField)) {
-            return AnimeDao.findAnimeAll(userId, offset, size, sortField, sortOrder);
-        }
-        List<Animes> allList = AnimeDao.findAllByName(userId);
-        // 3. 使用 Java 的 Comparator 按拼音首字母排序
-        Comparator<Animes> comparator = (a1, a2) -> {
-            // 把中文名字转换成拼音首字母
-            String pinyin1 = PinyinUtils.getFirstLetters(a1.getAnimeName());
-            String pinyin2 = PinyinUtils.getFirstLetters(a2.getAnimeName());
-
-            // 按照字母表 A-Z 比较
-            int result = pinyin1.compareTo(pinyin2);
-
-            // 如果是倒序 (Z-A)，就把结果取反
-            if ("DESC".equalsIgnoreCase(sortOrder)) {
-                return -result;
-            }
-            return result;
-        };
-
-        // 排序
-        allList.sort(comparator);
-
-        // 4. 内存分页：手动截取当前页的数据
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, allList.size());
-
-        // 如果请求的页码超出了总数据量，返回空列表
-        if (fromIndex >= allList.size()) {
-            return new ArrayList<>();
-        }
-
-        // 截取对应区间返回
-        return allList.subList(fromIndex, toIndex);
-
+    public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder) {
+        return AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
     }
 
 
@@ -81,13 +47,24 @@ public class AnimeService {
             return "动漫名称不能为空";
         if (anime.getUserId() == null)
             return "缺少用户信息";
+
+        // 自动把中文转成拼音首字母并塞进去
+        if (anime.getAnimeName() != null) {
+            String pinyin = PinyinUtils.getFirstLetters(anime.getAnimeName());
+            anime.setPinyinName(pinyin);
+        }
         return AnimeDao.add(anime) ? null : "新增失败，请稍后重试";
+
     }
 
     public String update(Animes anime, Integer userId) {
         if (anime.getId() == null) return "缺少动漫 id";
         if (anime.getAnimeName() == null || anime.getAnimeName().trim().isEmpty())
             return "动漫名称不能为空";
+        if (anime.getAnimeName() != null) {
+            String pinyin = PinyinUtils.getFirstLetters(anime.getAnimeName());
+            anime.setPinyinName(pinyin);
+        }
         return AnimeDao.updateAnime(anime,userId) ? null : "修改失败，请稍后重试";
     }
 

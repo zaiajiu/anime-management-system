@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
         //添加动漫，id，createTime，updataTime数据库会自动生成,后续传值只需要按传剩下五个
         public static boolean add(Animes z)//以Animes类为蓝本，创建一个z对象用于接收调用此
         {
-            String sql = "INSERT INTO anime(image_path, anime_name, anime_introduction, anime_comment, user_id) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO anime(image_path, anime_name, anime_introduction, anime_comment, user_id,pinyin_name) VALUES (?, ?, ?, ?, ?,?)";
             try(Connection conn = config.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);)
             {
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
                 pstmt.setString(3, z.getAnimeIntroduction());
                 pstmt.setString(4, z.getAnimeComment());
                 pstmt.setInt(5, z.getUserId());
+                pstmt.setString(6, z.getPinyinName());
                 int rows = pstmt.executeUpdate();
                 return rows > 0;
             } catch (SQLException e) {
@@ -71,7 +72,7 @@ import org.slf4j.LoggerFactory;
             // ★ 1. 白名单校验：把前端传的字段映射到数据库真实字段
             String dbColumn = "id"; // 默认
             if ("name".equals(sortField)) {
-                dbColumn = "anime_name";
+                dbColumn = "pinyin_name";
             } else if ("createTime".equals(sortField)) {
                 dbColumn = "create_time";
             } else if ("updateTime".equals(sortField)) {

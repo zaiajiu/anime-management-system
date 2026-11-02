@@ -52,6 +52,10 @@ public class Animes {
     public void setAnimeName(String animeName) {
         this.animeName = animeName;
     }
+    //动漫名称拼音（大写首字母）
+    private String pinyinName;
+    public String getPinyinName() { return pinyinName; }
+    public void setPinyinName(String pinyinName) { this.pinyinName = pinyinName; }
 //动漫的简介属性
     private String animeIntroduction;
     public String getAnimeIntroduction() {
