@@ -63,6 +63,23 @@ import org.slf4j.LoggerFactory;
             }
             return 0;
         }
+        public static int countByName(String animeName,Integer userId){
+            String sql = "SELECT COUNT(*) FROM anime WHERE anime_name=? AND user_id=?";
+            try(Connection conn = config.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);){
+                pstmt.setString(1, animeName);
+                pstmt.setInt(2, userId);
+                try(ResultSet rs=pstmt.executeQuery();) {
+
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }catch (SQLException e){
+                e.printStackTrace();
+            }
+            return 0;
+        }
         //size代表每页数据数量
         //sort代表查询结果按什么方式排序，例如按id排序，按名字排序等
         //order代表排序是顺序还是倒序
@@ -115,12 +132,23 @@ import org.slf4j.LoggerFactory;
             return AnimesListAll;
         }
 
-    /**
-     * 查询某个用户的全部动漫（用于内存拼音排序）
-     */
-    public static List<Animes> findAllByName(Integer userId) {
+
+    public static List<Animes> findAllByName(Integer userId,int offset,int size, String sortField, String sortOrder) {
         List<Animes> list = new ArrayList<>();
-        String sql = "SELECT * FROM anime WHERE user_id = ?";
+        String dbColumn = "id"; // 默认
+        if ("name".equals(sortField)) {
+            dbColumn = "pinyin_name";
+        } else if ("createTime".equals(sortField)) {
+            dbColumn = "create_time";
+        } else if ("updateTime".equals(sortField)) {
+            dbColumn = "update_time";
+        }
+        // ★ 2. 校验排序方向
+        String order = "DESC";
+        if ("ASC".equalsIgnoreCase(sortOrder)) {
+            order = "ASC";
+        }
+        String sql = "SELECT * FROM anime WHERE user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
         try (Connection conn = config.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -145,17 +173,30 @@ import org.slf4j.LoggerFactory;
     }
 
         //按名字
-        public static List<Animes>  findAnimesName(String animeName,Integer userId)
+        public static List<Animes>  findAnimesName(String animeName,Integer userId,int offset,int size, String sortField, String sortOrder)
         {
             List<Animes> AnimesList=new ArrayList<>();
+            String dbColumn = "id";
+            if ("name".equals(sortField)) {
+                dbColumn = "pinyin_name";
+            } else if ("createTime".equals(sortField)) {
+                dbColumn = "create_time";
+            } else if ("updateTime".equals(sortField)) {
+                dbColumn = "update_time";
+            }
+            String order = "DESC";
+            if ("ASC".equalsIgnoreCase(sortOrder)) {
+                order = "ASC";
+            }
 
-//        String sql="SELECT * FROM goods WHERE name LIKE ? LIMIT "+offset+","+size;
-            String sql = "SELECT * FROM anime WHERE anime_name LIKE ? AND user_id = ? ORDER BY id DESC ";
+            String sql = "SELECT * FROM anime WHERE anime_name LIKE ? AND user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
             try(Connection conn = config.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);)
             {
                 pstmt.setString(1, "%"+animeName+"%");
                 pstmt.setInt(2, userId);
+                pstmt.setInt(3, offset);
+                pstmt.setInt(4, size);
                 try(ResultSet rs=pstmt.executeQuery();)
                 {
                     while(rs.next())

@@ -74,14 +74,20 @@ public class AnimeController {
     }
 
     @GetMapping("/name")
-    public Result<List<Animes>> findByName(@RequestParam String animeName,HttpServletRequest request) {
+    public Result<List<Animes>> findByName(@RequestParam String animeName,
+                                           HttpServletRequest request,
+                                           @RequestParam(defaultValue = "1") int page,
+                                           @RequestParam(defaultValue = "9") int size,
+                                           @RequestParam(defaultValue = "id") String sortField,
+                                           @RequestParam(defaultValue = "DESC") String sortOrder) {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
-        List<Animes> animeList = animeService.getByName(animeName,userId);
+        int offset=(page-1)*size;
+        List<Animes> animeList = animeService.getByName(animeName,userId,offset,size,sortField,sortOrder);
         if (animeList == null) {
             logger.warn("动漫不存在：名字={}", animeName);
             return Result.fail("动漫不存在");
         }
-        logger.info("按名字获取动漫数量："+animeList.size());
+        logger.info("按名字获取动漫的数量："+animeList.size());
         return Result.ok(animeList);
     }
 
@@ -89,6 +95,12 @@ public class AnimeController {
     public Result<Integer> count(HttpServletRequest request) {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         return Result.ok(animeService.count(userId));
+    }
+    @GetMapping("/name/count")
+    public Result<Integer> countByName(@RequestParam String animeName, HttpServletRequest request) {
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        int total = animeService.countByName(animeName, userId);
+        return Result.ok(total);
     }
 
     // ============================================================

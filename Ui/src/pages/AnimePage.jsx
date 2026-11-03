@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import AddAnimeDialog from '@/components/AddAnimeDialog';
-import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount} from '@/api/anime';
+import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount,fetchAnimeCountByName} from '@/api/anime';
 import logger from '@/utils/logger';
 import { toast } from 'sonner'; 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -117,17 +117,29 @@ export default function AnimePage() {
   /**
    * 按名称模糊搜索（不走分页，直接查出所有匹配的）
    * @param {string} name - 搜索关键词
+   * @param {number} targetPage
    */
-  function searchByName(name) {
+  function searchByName(name,targetPage,field=sortField,order=sortOrder) {
+    var currentPage = targetPage || 1;
+    var currentField = field || sortField;
+    var currentOrder = order || sortOrder;
     setLoading(true);
-    fetchAnimeByName(name)
+    fetchAnimeByName(name,currentPage,field,order)
       .then(function (res) {
-        logger.info('animeApi', '获取动漫成功', res);
-        console.log("获取动漫成功",res)
-        if (res.success) setList(res.data || []);
-        else setList([]);
+        if (res.success){
+          setList(res.data || []);
+          setPage(currentPage);
+        setJumpPage(currentPage.toString());
+        } 
       })
       .finally(function () { setLoading(false); });
+
+      fetchAnimeCountByName(name)
+    .then(function (res) {
+      if (res.success) {
+        setTotal(res.data || 0);
+      }
+    });
   }
 
   /**
@@ -154,18 +166,28 @@ export default function AnimePage() {
   var totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
   // 点击“上一页”
-  function handlePrevPage() { if (page > 1) loadPageList(page - 1); }
-  
-  // 点击“下一页”
-  function handleNextPage() { if (page < totalPages) loadPageList(page + 1); }
-  
-  // 输入页码跳转
-  function handleJumpPage() {
-    var target = parseInt(jumpPage, 10);
-    if (isNaN(target) || target < 1) target = 1; // 防呆设计：如果输入非数字或小于1，强制设为1
-    if (target > totalPages) target = totalPages; // 如果超过最大页，强制设为最大页
-    loadPageList(target);
+  function handlePrevPage() {
+  if (page > 1) {
+    if (keyword.trim() === '') loadPageList(page - 1);
+    else searchByName(keyword.trim(), page - 1); // ★ 搜索状态下翻页
   }
+}
+//下一页
+function handleNextPage() {
+  if (page < totalPages) {
+    if (keyword.trim() === '') loadPageList(page + 1);
+    else searchByName(keyword.trim(), page + 1); // ★ 搜索状态下翻页
+  }
+}
+//页码跳转
+function handleJumpPage() {
+  var target = parseInt(jumpPage, 10);
+  if (isNaN(target) || target < 1) target = 1;
+  if (target > totalPages) target = totalPages;
+  
+  if (keyword.trim() === '') loadPageList(target);
+  else searchByName(keyword.trim(), target); // ★ 搜索状态下跳转
+}
 
   // ============================================================
   // 增删改逻辑
@@ -279,7 +301,11 @@ export default function AnimePage() {
       value={sortField} 
       onValueChange={function(value) {
         setSortField(value);
-        loadPageList(1, value, sortOrder); // 切换字段时，回到第一页
+        if (keyword.trim() === '') {
+            loadPageList(1, value, sortOrder); // 没有搜索，查全部
+        } else {
+            searchByName(keyword.trim(), 1, value, sortOrder); // 有搜索，重新搜索
+        }
       }}
     >
       <SelectTrigger className="w-[120px]">
@@ -302,8 +328,13 @@ export default function AnimePage() {
       variant="outline" 
       onClick={function() {
         var newOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
-        setSortOrder(newOrder);
-        loadPageList(1, sortField, newOrder); // 切换顺序时，回到第一页
+        setSortOrder(newOrder);// 更新顺序状态
+        // 判断当前有没有搜索词
+        if (keyword.trim() === '') {
+          loadPageList(1, sortField, newOrder);
+        } else {
+          searchByName(keyword.trim(), 1, sortField, newOrder);
+        }
       }}
     >
       <ArrowUpDown className="size-4 mr-2" />
@@ -361,7 +392,7 @@ export default function AnimePage() {
       )}
 
       {/* 底部分页组件：只有在非搜索状态且有数据时才显示 */}
-      {keyword.trim() === '' && list.length > 0 && (
+      {list.length > 0 && (
         <div className="flex items-center justify-center gap-4 mt-8 pt-4 border-t">
           <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={page <= 1}>
             <ChevronLeftIcon className="size-4 mr-1" /> 上一页

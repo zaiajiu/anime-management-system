@@ -24,6 +24,9 @@ public class AnimeService {
     public int count(Integer userId) {
         return AnimeDao.count(userId);
     }
+    public int countByName(String animeName,Integer userId) {
+        return AnimeDao.countByName(animeName,userId);
+    }
 
     /** ★ 按 id 查单条（更新时用） */
     public Animes getById(Integer id, Integer userId) {
@@ -38,9 +41,9 @@ public class AnimeService {
         return  AnimeDao.findAnimeIds(ids,userId);
     }
 
-    public List<Animes>  getByName(String animeName, Integer userId) {
+    public List<Animes>  getByName(String animeName, Integer userId,Integer offset,Integer size,String sortField,String sortOrder) {
         if (animeName == null || animeName.trim().isEmpty()) return null;
-        return AnimeDao.findAnimesName(animeName.trim(),userId);
+        return AnimeDao.findAnimesName(animeName.trim(),userId,offset,size,sortField,sortOrder);
     }
     public String add(Animes anime) {
         if (anime.getAnimeName() == null || anime.getAnimeName().trim().isEmpty())

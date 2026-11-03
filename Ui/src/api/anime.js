@@ -83,8 +83,11 @@ export function fetchAnimeCount() {
 // ============================================================
 // 3. 按名称搜索：GET /api/anime/name?animeName=xxx
 // ============================================================
-export function fetchAnimeByName(animeName) {
-  var url = BASE_URL + '/name?animeName=' + encodeURIComponent(animeName);
+export function fetchAnimeByName(animeName,page,sortField,sortOrder) {
+  var currentPage = page || 1;
+  var field = sortField || 'id';
+  var order = sortOrder || 'DESC';
+  var url = BASE_URL + '/name?animeName=' + encodeURIComponent(animeName)+'&page=' + currentPage + '&sortField=' + field + '&sortOrder=' + order;;
 
   return fetch(url, { method: 'GET', credentials: 'include' })
     .then(checkResponseStatus)
@@ -98,6 +101,12 @@ export function fetchAnimeByName(animeName) {
       logger.error('animeApi', '按名称搜索失败', error);
       throw error;
     });
+    
+}
+export async function fetchAnimeCountByName(animeName) {
+  var url = BASE_URL + '/name/count?animeName=' + encodeURIComponent(animeName);
+  var res = await fetch(url, { method: 'GET', credentials: 'include' });
+  return res.json();
 }
 
 // ============================================================
