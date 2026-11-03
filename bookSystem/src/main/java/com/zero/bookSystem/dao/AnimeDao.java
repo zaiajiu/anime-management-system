@@ -132,46 +132,6 @@ import org.slf4j.LoggerFactory;
             return AnimesListAll;
         }
 
-
-    public static List<Animes> findAllByName(Integer userId,int offset,int size, String sortField, String sortOrder) {
-        List<Animes> list = new ArrayList<>();
-        String dbColumn = "id"; // 默认
-        if ("name".equals(sortField)) {
-            dbColumn = "pinyin_name";
-        } else if ("createTime".equals(sortField)) {
-            dbColumn = "create_time";
-        } else if ("updateTime".equals(sortField)) {
-            dbColumn = "update_time";
-        }
-        // ★ 2. 校验排序方向
-        String order = "DESC";
-        if ("ASC".equalsIgnoreCase(sortOrder)) {
-            order = "ASC";
-        }
-        String sql = "SELECT * FROM anime WHERE user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
-        try (Connection conn = config.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Animes z = new Animes();
-                    z.setId(rs.getInt("id"));
-                    z.setImagePath(rs.getString("image_path"));
-                    z.setAnimeName(rs.getString("anime_name"));
-                    z.setUserId(rs.getInt("user_id"));
-                    z.setAnimeIntroduction(rs.getString("anime_introduction"));
-                    z.setAnimeComment(rs.getString("anime_comment"));
-                    z.setCreateTime(rs.getString("create_time"));
-                    z.setUpdateTime(rs.getString("update_time"));
-                    list.add(z);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
         //按名字
         public static List<Animes>  findAnimesName(String animeName,Integer userId,int offset,int size, String sortField, String sortOrder)
         {
