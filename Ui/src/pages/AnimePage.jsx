@@ -1,211 +1,160 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { SearchIcon, PlusIcon, EditIcon, CheckIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { SearchIcon, PlusIcon, EditIcon, CheckIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown } from 'lucide-react';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { Kbd } from '@/components/ui/kbd';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import AddAnimeDialog from '@/components/AddAnimeDialog';
-import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount,fetchAnimeCountByName} from '@/api/anime';
+import { fetchAnimeList, fetchAnimeByName, deleteAnimeBatch, fetchAnimeCount, fetchAnimeCountByName } from '@/api/anime';
 import logger from '@/utils/logger';
-import { toast } from 'sonner'; 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowUpDown } from 'lucide-react';
+import { toast } from 'sonner';
 
-// 全局配置
 var BACKEND = 'http://localhost:8080';
-var PAGE_SIZE = 9; // 后端设定一页返回 9 个，前端用来计算总页数
+var PAGE_SIZE = 9;
 
-/**
- * 工具函数：生成内联 SVG 兜底图
- * @param {string} label - 图片中间显示的文字
- * @returns {string} 可以直接用在 img src 里的 base64 数据
- */
 function getDefaultImage(label) {
   var text = label || '无图';
   var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="266"><rect width="100%" height="100%" fill="#eeeeee"/><text x="50%" y="50%" text-anchor="middle" dy="0.3em" fill="#999999" font-size="16">' + text + '</text></svg>';
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-/**
- * 工具函数：拼接图片完整 URL
- * @param {string} path - 后端返回的相对路径（如 /uploads/xxx.jpg）
- * @returns {string} 完整的可访问 URL
- */
 function getImageUrl(path) {
   if (!path) return getDefaultImage('未上传');
   if (path.indexOf('http') === 0) return path;
   return BACKEND + path;
 }
 
-/**
- * 动漫列表主页面组件
- */
 export default function AnimePage() {
-  // 路由跳转工具（用于点击卡片跳详情页）
   var navigate = useNavigate();
+  
+  // ★ 核心 1：获取 URL 参数钩子
+  var [searchParams, setSearchParams] = useSearchParams();
+
+  // ★ 核心 2：从 URL 提取初始状态（用于刷新或返回时恢复状态）
+  var initKeyword = searchParams.get('keyword') || '';
+  var initPage = parseInt(searchParams.get('page'), 10) || 1;
+  var initField = searchParams.get('sortField') || 'id';
+  var initOrder = searchParams.get('sortOrder') || 'DESC';
 
   // ============================================================
-  // 组件状态管理 (State)
+  // 状态管理
   // ============================================================
-  // 列表相关
-  var listState = useState([]); var list = listState[0]; var setList = listState[1]; // 存储当前页的动漫数组
-  var loadingState = useState(true); var loading = loadingState[0]; var setLoading = loadingState[1]; // 是否正在加载数据
-  var keywordState = useState(''); var keyword = keywordState[0]; var setKeyword = keywordState[1]; // 搜索框的输入内容
+  var listState = useState([]); var list = listState[0]; var setList = listState[1];
+  var loadingState = useState(true); var loading = loadingState[0]; var setLoading = loadingState[1];
+  
+  // 初始值全部从 URL 读取
+  var keywordState = useState(initKeyword); var keyword = keywordState[0]; var setKeyword = keywordState[1];
+  var pageState = useState(initPage); var page = pageState[0]; var setPage = pageState[1];
+  var totalState = useState(0); var total = totalState[0]; var setTotal = totalState[1];
+  var jumpPageState = useState(initPage.toString()); var jumpPage = jumpPageState[0]; var setJumpPage = jumpPageState[1];
 
-  // 分页相关
-  var pageState = useState(1); var page = pageState[0]; var setPage = pageState[1]; // 当前页码
-  var totalState = useState(0); var total = totalState[0]; var setTotal = totalState[1]; // 总数据条数
-  var jumpPageState = useState(''); var jumpPage = jumpPageState[0]; var setJumpPage = jumpPageState[1]; // 跳转输入框里的内容
+  var sortFieldState = useState(initField); var sortField = sortFieldState[0]; var setSortField = sortFieldState[1];
+  var sortOrderState = useState(initOrder); var sortOrder = sortOrderState[0]; var setSortOrder = sortOrderState[1];
 
-  // 弹窗与编辑模式相关
-  var dialogOpenState = useState(false); var dialogOpen = dialogOpenState[0]; var setDialogOpen = dialogOpenState[1]; // 新增动漫弹窗的开关
-  var editModeState = useState(false); var editMode = editModeState[0]; var setEditMode = editModeState[1]; // 是否处于“批量编辑”模式
-  var selectedIdsState = useState([]); var selectedIds = selectedIdsState[0]; var setSelectedIds = selectedIdsState[1]; // 处于编辑模式时，勾选的动漫 id 数组
-  var confirmOpenState = useState(false); var confirmOpen = confirmOpenState[0]; var setConfirmOpen = confirmOpenState[1]; // 删除确认弹窗的开关
+  var dialogOpenState = useState(false); var dialogOpen = dialogOpenState[0]; var setDialogOpen = dialogOpenState[1];
+  var editModeState = useState(false); var editMode = editModeState[0]; var setEditMode = editModeState[1];
+  var selectedIdsState = useState([]); var selectedIds = selectedIdsState[0]; var setSelectedIds = selectedIdsState[1];
+  var confirmOpenState = useState(false); var confirmOpen = confirmOpenState[0]; var setConfirmOpen = confirmOpenState[1];
 
-  // 用于搜索防抖的定时器（用 useRef 存，避免组件重新渲染时丢失）
   var searchTimerRef = useRef(null);
 
-  var sortFieldState = useState('id'); var sortField = sortFieldState[0]; var setSortField = sortFieldState[1];
-  var sortOrderState = useState('DESC'); var sortOrder = sortOrderState[0]; var setSortOrder = sortOrderState[1];
-
   // ============================================================
-  // 核心业务方法 (Functions)
+  // 核心数据请求
   // ============================================================
-
-  /**
-   * 加载分页数据和总数
-   * @param {number} targetPage - 要加载的页码（比如第 2 页）
-   */
-  function loadPageList(targetPage,field=sortField,order=sortOrder) {
-    var currentField = field || sortField;
-    var currentOrder = order || sortOrder;
+  
+  // 统一的获取数据入口
+  function fetchData(targetPage, targetKeyword, targetField, targetOrder) {
     setLoading(true);
+    setPage(targetPage);
+    setJumpPage(targetPage.toString());
 
-    // 1. 发起请求：查询当前页的动漫列表
-    fetchAnimeList(targetPage,field,order)
-      .then(function (res) {
-        if (res.success) {
-          setList(res.data || []); // 后端返回的是数组，直接存进 list 状态
-          setPage(targetPage);     // 更新当前页码状态
-          setJumpPage(targetPage.toString()); // 同步更新跳转输入框的值
-        }
-      })
-      .catch(function (error) { logger.error('AnimePage', '加载列表失败', error); })
-      .finally(function () { setLoading(false); }); // 无论成功失败，停止 loading
+    // 同步更新 URL，保证刷新和返回不丢失状态
+    var newParams = { page: targetPage.toString() };
+    if (targetKeyword.trim() !== '') newParams.keyword = targetKeyword.trim();
+    if (targetField !== 'id') newParams.sortField = targetField;
+    if (targetOrder !== 'DESC') newParams.sortOrder = targetOrder;
+    setSearchParams(newParams);
 
-    // 2. 发起请求：查询总数
-    fetchAnimeCount()
-      .then(function (res) {
-        if (res.success) {
-          setTotal(res.data || 0);
-        }
-      })
-      .catch(function (error) { logger.error('AnimePage', '加载总数失败', error); });
+    if (targetKeyword.trim() === '') {
+      // 查全部
+      fetchAnimeList(targetPage, targetField, targetOrder)
+        .then(function (res) {
+          if (res.success) setList(res.data || []);
+        })
+        .finally(function () { setLoading(false); });
+        
+      fetchAnimeCount()
+        .then(function (res) { if (res.success) setTotal(res.data || 0); });
+    } else {
+      // 条件搜索
+      fetchAnimeByName(targetKeyword.trim(), targetPage, targetField, targetOrder)
+        .then(function (res) {
+          if (res.success) setList(res.data || []);
+        })
+        .finally(function () { setLoading(false); });
+        
+      fetchAnimeCountByName(targetKeyword.trim())
+        .then(function (res) { if (res.success) setTotal(res.data || 0); });
+    }
   }
 
-  /**
-   * 副作用：组件挂载时（页面第一次打开），默认加载第一页
-   */
-  useEffect(function () { loadPageList(1); }, []);
+  // 页面初次挂载时，根据 URL 状态加载
+  useEffect(function () {
+    fetchData(initPage, initKeyword, initField, initOrder);
+  }, []);
 
-  /**
-   * 按名称模糊搜索（不走分页，直接查出所有匹配的）
-   * @param {string} name - 搜索关键词
-   * @param {number} targetPage
-   */
-  function searchByName(name,targetPage,field=sortField,order=sortOrder) {
-    var currentPage = targetPage || 1;
-    var currentField = field || sortField;
-    var currentOrder = order || sortOrder;
-    setLoading(true);
-    fetchAnimeByName(name,currentPage,field,order)
-      .then(function (res) {
-        if (res.success){
-          setList(res.data || []);
-          setPage(currentPage);
-        setJumpPage(currentPage.toString());
-        } 
-      })
-      .finally(function () { setLoading(false); });
-
-      fetchAnimeCountByName(name)
-    .then(function (res) {
-      if (res.success) {
-        setTotal(res.data || 0);
-      }
-    });
-  }
-
-  /**
-   * 监听搜索框输入事件（带 500ms 防抖）
-   * 用户连续打字时不会发请求，停下 500ms 后才真正发请求
-   */
+  // 搜索防抖
   function handleKeywordChange(event) {
     var value = event.target.value;
     setKeyword(value);
-    // 如果之前有定时器，先清空
+    
     if (searchTimerRef.current !== null) clearTimeout(searchTimerRef.current);
-
-    // 重新开启定时器
+    
     searchTimerRef.current = setTimeout(function () {
-      if (value.trim() === '') loadPageList(1); // 如果清空了搜索框，回到第一页全部数据
-      else searchByName(value.trim());          // 否则发起搜索请求
+      fetchData(1, value, sortField, sortOrder); // 搜索时强制回到第 1 页
     }, 500);
   }
 
   // ============================================================
-  // 翻页逻辑
+  // 翻页与排序
   // ============================================================
-  // 计算总页数（比如总数 10 条，每页 9 条，Math.ceil(10/9) = 2 页）
   var totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
-  // 点击“上一页”
-  function handlePrevPage() {
-  if (page > 1) {
-    if (keyword.trim() === '') loadPageList(page - 1);
-    else searchByName(keyword.trim(), page - 1); // ★ 搜索状态下翻页
-  }
-}
-//下一页
-function handleNextPage() {
-  if (page < totalPages) {
-    if (keyword.trim() === '') loadPageList(page + 1);
-    else searchByName(keyword.trim(), page + 1); // ★ 搜索状态下翻页
-  }
-}
-//页码跳转
-function handleJumpPage() {
-  var target = parseInt(jumpPage, 10);
-  if (isNaN(target) || target < 1) target = 1;
-  if (target > totalPages) target = totalPages;
+  function handlePrevPage() { if (page > 1) fetchData(page - 1, keyword, sortField, sortOrder); }
+  function handleNextPage() { if (page < totalPages) fetchData(page + 1, keyword, sortField, sortOrder); }
   
-  if (keyword.trim() === '') loadPageList(target);
-  else searchByName(keyword.trim(), target); // ★ 搜索状态下跳转
-}
-
-  // ============================================================
-  // 增删改逻辑
-  // ============================================================
-
-  /**
-   * 新增动漫成功后的回调函数（由 AddAnimeDialog 组件触发）
-   * 逻辑：如果当前在搜索状态，就重新搜；如果没搜索，就重新加载第一页
-   */
-  function handleAddSuccess() {
-    if (keyword.trim() === '') loadPageList(1);
-    else searchByName(keyword.trim());
+  function handleJumpPage() {
+    var target = parseInt(jumpPage, 10);
+    if (isNaN(target) || target < 1) target = 1;
+    if (target > totalPages) target = totalPages;
+    fetchData(target, keyword, sortField, sortOrder);
   }
 
-  /**
-   * 图片加载失败时的兜底处理
-   * （防止死循环：用 dataset.failed 标记，如果已经替换过一次还失败，就不再替换）
-   */
+  // 排序切换
+  function handleSortChange(field) {
+    setSortField(field);
+    fetchData(1, keyword, field, sortOrder); // 排序切换时回到第 1 页
+  }
+
+  function handleOrderChange() {
+    var newOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
+    setSortOrder(newOrder);
+    fetchData(1, keyword, sortField, newOrder);
+  }
+
+  // ============================================================
+  // 增删改操作
+  // ============================================================
+  function handleAddSuccess() {
+    fetchData(1, keyword, sortField, sortOrder);
+  }
+
   function handleImageError(event) {
     var img = event.currentTarget;
     if (img.dataset.failed === '1') return;
@@ -213,134 +162,87 @@ function handleJumpPage() {
     img.src = getDefaultImage('加载失败');
   }
 
-  // 进入编辑模式（清空之前选中的记录）
   function enterEditMode() { setEditMode(true); setSelectedIds([]); }
-  
-  // 退出编辑模式
   function exitEditMode() { setEditMode(false); setSelectedIds([]); }
-  
-  /**
-   * 选中/取消选中某个动漫卡片
-   * @param {number} id - 动漫的 id
-   */
+
   function toggleSelect(id) {
     var index = selectedIds.indexOf(id);
     if (index === -1) {
-      // 没选中 -> 加入数组
       setSelectedIds(selectedIds.concat(id));
     } else {
-      // 已经选中 -> 从数组剔除
       var copy = selectedIds.slice(); copy.splice(index, 1); setSelectedIds(copy);
     }
   }
 
-  /**
-   * 点击底部“删除”按钮（打开确认弹窗）
-   */
   function handleClickDelete() {
     if (selectedIds.length === 0) return toast.error('请先选择要删除的动漫');
     setConfirmOpen(true);
   }
 
-  /**
-   * 在确认弹窗中点击“确认删除”（真正执行删除）
-   */
   function handleConfirmDelete() {
     setConfirmOpen(false); 
     setEditMode(false);
     
     var idsToDelete = selectedIds; 
-    setSelectedIds([]); // 清空选中的状态
+    setSelectedIds([]); 
 
-    // 发起批量删除请求
     deleteAnimeBatch(idsToDelete)
       .then(function (res) {
         if (res.success === false) toast.error(res.message);
-        if (res.success==true) {
-          toast.success("删除动漫成功")
-        }
-        // 刷新列表逻辑
-        if (keyword.trim() === '') {
-          // 如果当前页的数据被删光了，且不是第一页，就自动往前翻一页
-          var targetPage = (idsToDelete.length === list.length && page > 1) ? page - 1 : page;
-          loadPageList(targetPage);
-        } else {
-          // 如果是搜索状态，重新搜索
-          searchByName(keyword.trim());
-        }
+        if (res.success === true) toast.success("删除动漫成功");
+        
+        // 如果当前页被删光了，自动往前翻一页
+        var targetPage = (idsToDelete.length === list.length && page > 1) ? page - 1 : page;
+        fetchData(targetPage, keyword, sortField, sortOrder);
       })
       .catch(function (error) { toast.error('删除失败：' + error.message); });
   }
 
-  /**
-   * 点击动漫卡片的处理逻辑
-   * @param {object} item - 动漫对象
-   */
   function handleCardClick(item) {
     if (editMode === true) {
-      toggleSelect(item.id); // 如果在编辑模式，就切换选中状态
+      toggleSelect(item.id);
     } else {
-      navigate('/monitor/' + item.id); // 否则跳转到详情页
+      navigate('/monitor/' + item.id); 
     }
   }
 
   // ============================================================
-  // 渲染视图 (UI)
+  // 渲染视图
   // ============================================================
   return (
     <div className="p-4 space-y-6 pb-24">
-      {/* 顶部工具栏*/}
-      <div className="flex items-center gap-4">
+      {/* 顶部工具栏 */}
+      <div className="flex items-center gap-4 flex-wrap">
         <InputGroup className="max-w-sm">
           <InputGroupInput placeholder="搜索动漫名称..." value={keyword} onChange={handleKeywordChange} />
           <InputGroupAddon><SearchIcon className="text-muted-foreground" /></InputGroupAddon>
           <InputGroupAddon align="inline-end"><Kbd>⌘K</Kbd></InputGroupAddon>
         </InputGroup>
-        <div className="flex items-center gap-2 ml-4">
-    <Select 
-      value={sortField} 
-      onValueChange={function(value) {
-        setSortField(value);
-        if (keyword.trim() === '') {
-            loadPageList(1, value, sortOrder); // 没有搜索，查全部
-        } else {
-            searchByName(keyword.trim(), 1, value, sortOrder); // 有搜索，重新搜索
-        }
-      }}
-    >
-      <SelectTrigger className="w-[120px]">
-        <SelectValue placeholder="排序方式">
-      {sortField === 'id' ? '默认 (ID)' : 
-       sortField === 'name' ? '按名称' :
-       sortField === 'createTime' ? '按创建时间' : '按修改时间'}
-    </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="id">默认 (ID)</SelectItem>
-        <SelectItem value="name">按名称</SelectItem>
-        <SelectItem value="createTime">按创建时间</SelectItem>
-        <SelectItem value="updateTime">按修改时间</SelectItem>
-      </SelectContent>
-    </Select>
+        
+        {/* 排序组件 */}
+        <div className="flex items-center gap-2">
+          <Select value={sortField} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="排序方式">
+                {sortField === 'id' ? '默认 (ID)' : 
+                 sortField === 'name' ? '按名称' :
+                 sortField === 'createTime' ? '按创建时间' : '按修改时间'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="id">默认 (ID)</SelectItem>
+              <SelectItem value="name">按名称</SelectItem>
+              <SelectItem value="createTime">按创建时间</SelectItem>
+              <SelectItem value="updateTime">按修改时间</SelectItem>
+            </SelectContent>
+          </Select>
 
-    {/* 顺序/倒序切换按钮 */}
-    <Button 
-      variant="outline" 
-      onClick={function() {
-        var newOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC';
-        setSortOrder(newOrder);// 更新顺序状态
-        // 判断当前有没有搜索词
-        if (keyword.trim() === '') {
-          loadPageList(1, sortField, newOrder);
-        } else {
-          searchByName(keyword.trim(), 1, sortField, newOrder);
-        }
-      }}
-    >
-      <ArrowUpDown className="size-4 mr-2" />
-      {sortOrder === 'DESC' ? '倒序' : '顺序'}
-    </Button>
-  </div>
+          <Button variant="outline" onClick={handleOrderChange}>
+            <ArrowUpDown className="size-4 mr-2" />
+            {sortOrder === 'DESC' ? '倒序' : '顺序'}
+          </Button>
+        </div>
+
         <div className="ml-auto">
           {editMode === false ? (
             <Button variant="outline" onClick={enterEditMode}><EditIcon className="size-4 mr-2" />编辑</Button>
@@ -350,13 +252,11 @@ function handleJumpPage() {
         </div>
       </div>
 
-      {/* 卡片列表：判断是否正在加载 */}
+      {/* 卡片列表 */}
       {loading === true ? (
         <p className="text-muted-foreground">加载中...</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          
-          {/* 如果是普通模式，显示“添加动漫”的加号卡片 */}
           {editMode === false && (
             <Card onClick={function () { setDialogOpen(true); }} className="cursor-pointer border-dashed border-2 bg-muted/30 hover:bg-accent transition-colors">
               <CardContent className="flex flex-col items-center justify-center aspect-[3/4] p-0">
@@ -366,7 +266,6 @@ function handleJumpPage() {
             </Card>
           )}
 
-          {/* 遍历渲染动漫数据 */}
           {list.map(function (item) {
             var isSelected = selectedIds.indexOf(item.id) !== -1;
             return (
@@ -375,11 +274,8 @@ function handleJumpPage() {
                   'hover:-translate-y-1 hover:shadow-lg ' +
                   'active:scale-95 ' +
                    (editMode ? 'cursor-pointer ' : '') + (isSelected ? 'ring-2 ring-primary' : '')}>
-                {/* 封面图 */}
                 <img src={getImageUrl(item.imagePath)} alt={item.animeName} className="w-full aspect-[3/4] object-cover bg-muted transition-transform duration-500 hover:scale-105" onError={handleImageError} />
-                {/* 标题 */}
                 <CardContent className="p-3"><CardTitle className="text-sm line-clamp-1">{item.animeName}</CardTitle></CardContent>
-                {/* 编辑模式下的右下角勾选圈 */}
                 {editMode === true && (
                   <div className={'absolute bottom-2 right-2 size-6 rounded-full border-2 flex items-center justify-center transition-colors ' + (isSelected ? 'bg-primary border-primary text-primary-foreground' : 'bg-background/80 border-muted-foreground')}>
                     {isSelected === true && <CheckIcon className="size-4" />}
@@ -391,9 +287,9 @@ function handleJumpPage() {
         </div>
       )}
 
-      {/* 底部分页组件：只有在非搜索状态且有数据时才显示 */}
+      {/* 底部分页组件 */}
       {list.length > 0 && (
-        <div className="flex items-center justify-center gap-4 mt-8 pt-4 border-t">
+        <div className="flex items-center justify-center gap-4 mt-8 pt-4 border-t flex-wrap">
           <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={page <= 1}>
             <ChevronLeftIcon className="size-4 mr-1" /> 上一页
           </Button>
@@ -402,21 +298,19 @@ function handleJumpPage() {
             下一页 <ChevronRightIcon className="size-4 ml-1" />
           </Button>
           
-          {/* 跳转输入框 */}
           <div className="flex items-center gap-2 ml-6">
             <span className="text-sm text-muted-foreground">跳至</span>
             <Input className="w-16 h-8 text-center" value={jumpPage} onChange={function (e) { setJumpPage(e.target.value); }} onBlur={handleJumpPage} onKeyDown={function (e) { if (e.key === 'Enter') handleJumpPage(); }} />
             <span className="text-sm text-muted-foreground">页</span>
           </div>
           
-          {/* 总页数/总数展示 */}
           <div className="text-sm text-muted-foreground ml-4 border-l pl-4">
             共 {totalPages} 页 / 总计 {total} 个动漫
           </div>
         </div>
       )}
 
-      {/* 底部批量删除悬浮栏：仅在编辑模式显示 */}
+      {/* 底部批量删除悬浮栏 */}
       {editMode === true && (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 flex items-center justify-between z-50">
           <span className="text-sm text-muted-foreground">已选择 {selectedIds.length} 个</span>
@@ -426,10 +320,8 @@ function handleJumpPage() {
         </div>
       )}
 
-      {/* 引入的新增动漫弹窗 */}
       <AddAnimeDialog open={dialogOpen} onOpenChange={setDialogOpen} onSuccess={handleAddSuccess} />
 
-      {/* 删除确认弹窗 */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

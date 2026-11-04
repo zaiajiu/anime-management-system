@@ -64,15 +64,16 @@ import org.slf4j.LoggerFactory;
             return 0;
         }
         public static int countByName(String animeName,Integer userId){
-            String sql = "SELECT COUNT(*) FROM anime WHERE anime_name=? AND user_id=?";
+            String sql = "SELECT COUNT(*) FROM anime WHERE anime_name LIKE ? AND user_id=?";
             try(Connection conn = config.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);){
-                pstmt.setString(1, animeName);
+                pstmt.setString(1, "%"+animeName+"%");
                 pstmt.setInt(2, userId);
                 try(ResultSet rs=pstmt.executeQuery();) {
 
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        int count = rs.getInt(1);
+                        return count;
                     }
                 }
             }catch (SQLException e){

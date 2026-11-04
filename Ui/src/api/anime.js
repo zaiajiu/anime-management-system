@@ -103,6 +103,7 @@ export function fetchAnimeByName(animeName,page,sortField,sortOrder) {
     });
     
 }
+//获取按名称查询的动漫数量
 export async function fetchAnimeCountByName(animeName) {
   var url = BASE_URL + '/name/count?animeName=' + encodeURIComponent(animeName);
   var res = await fetch(url, { method: 'GET', credentials: 'include' });
