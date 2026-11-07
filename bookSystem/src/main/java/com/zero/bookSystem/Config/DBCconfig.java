@@ -1,4 +1,4 @@
-package com.zero.bookSystem.DBCconfig;
+package com.zero.bookSystem.Config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +9,7 @@ import java.sql.SQLException;
  * 说明：这是手写 JDBC 的连接方式，项目里所有 DAO 都通过它拿 Connection
  * 后续如果想用 Spring 的连接池，可以换成 JdbcTemplate / MyBatis，这里先保持不变
  */
-public class config {
+public class DBCconfig {
 
     // 数据库地址：book_system 是库名，按你实际的改
     // useSSL=false 关闭 SSL；serverTimezone 指定时区；characterEncoding 指定编码

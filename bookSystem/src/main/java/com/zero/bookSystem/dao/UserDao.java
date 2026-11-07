@@ -1,6 +1,6 @@
 package com.zero.bookSystem.dao;
 
-import com.zero.bookSystem.DBCconfig.config;
+import com.zero.bookSystem.Config.DBCconfig;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -55,7 +55,7 @@ public class UserDao {
     public static boolean existsUsername(String username) {
         // LIMIT 1：找到一条就够，提升性能
         String sql = "SELECT 1 FROM user WHERE username = ? LIMIT 1";
-        try (Connection conn = config.getConnection();
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
@@ -72,8 +72,8 @@ public class UserDao {
      *         查不到返回 null
      */
     public static Object[] getUserInfo(String username) {
-        String sql = "SELECT id, username, avatar, created_at,nickname,signature FROM user WHERE username = ?";
-        try (Connection conn = config.getConnection();
+        String sql = "SELECT id, username, avatar, created_at,nickname,signature,role FROM user WHERE username = ?";
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
@@ -85,7 +85,8 @@ public class UserDao {
                         rs.getString("avatar"),
                         rs.getTimestamp("created_at"),
                         rs.getString("nickname"),
-                        rs.getString("signature")
+                        rs.getString("signature"),
+                        rs.getString("role")
                 };
             }
         } catch (SQLException e) {
@@ -102,7 +103,7 @@ public class UserDao {
         // 只插 username 和 password，其他字段用默认值
         // id 自增；avatar 为 NULL；created_at 数据库默认当前时间
         String sql = "INSERT INTO user(username, password) VALUES (?, ?)";
-        try (Connection conn = config.getConnection();
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
             pstmt.setString(2, password);
@@ -117,24 +118,26 @@ public class UserDao {
      * 登录：用户名 + 密码同时匹配才算成功
      * @return true = 登录成功
      */
-    public static boolean login(String username, String password) {
-        String sql = "SELECT * FROM user WHERE username = ? AND password = ?";
-        try (Connection conn = config.getConnection();
+    public static String login(String username) {
+        String sql = "SELECT * FROM user WHERE username = ?";
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();          // 查到 = 登录成功
+            try(ResultSet rs=pstmt.executeQuery();)
+            {
+                return rs.getString("password");
+            }
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            return false;
+            return null;
         }
     }
 
     public  static  boolean updateProfile(String nickName,String signature,String avatarPath,String userName) {
         System.out.println("UserDao 127:"+nickName+":/"+signature+":/"+avatarPath+":/"+userName);
         String sql = "UPDATE user SET nickName = ?, signature = ?, avatar = ? WHERE username = ?";
-        try(Connection conn = config.getConnection();
+        try(Connection conn = DBCconfig.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
             pstmt.setString(1, nickName);
             pstmt.setString(2, signature);
@@ -152,7 +155,7 @@ public class UserDao {
      */
     public static boolean updatePassword(String username, String newpassword) {
         String sql = "UPDATE user SET password = ? WHERE username = ?";
-        try (Connection conn = config.getConnection();
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newpassword);
             pstmt.setString(2, username);

@@ -1,6 +1,5 @@
 package com.zero.bookSystem.dao;
 
-import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.entity.Animes;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import com.zero.bookSystem.DBCconfig.config;
+import com.zero.bookSystem.Config.DBCconfig;
 
 
 import org.slf4j.Logger;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
         public static boolean add(Animes z)//以Animes类为蓝本，创建一个z对象用于接收调用此
         {
             String sql = "INSERT INTO anime(image_path, anime_name, anime_introduction, anime_comment, user_id,pinyin_name) VALUES (?, ?, ?, ?, ?,?)";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);)
             {
                 System.out.println(z);
@@ -49,7 +48,7 @@ import org.slf4j.LoggerFactory;
         public static int count(Integer userId)
         {
             String sql = "SELECT COUNT(*) FROM anime WHERE user_id=?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);){
                 pstmt.setInt(1, userId);
                 try(ResultSet rs=pstmt.executeQuery();) {
@@ -65,7 +64,7 @@ import org.slf4j.LoggerFactory;
         }
         public static int countByName(String animeName,Integer userId){
             String sql = "SELECT COUNT(*) FROM anime WHERE anime_name LIKE ? AND user_id=?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);){
                 pstmt.setString(1, "%"+animeName+"%");
                 pstmt.setInt(2, userId);
@@ -102,7 +101,7 @@ import org.slf4j.LoggerFactory;
                 order = "ASC";
             }
             String sql="SELECT * FROM anime WHERE user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 )
             {
@@ -151,7 +150,7 @@ import org.slf4j.LoggerFactory;
             }
 
             String sql = "SELECT * FROM anime WHERE anime_name LIKE ? AND user_id = ? ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);)
             {
                 pstmt.setString(1, "%"+animeName+"%");
@@ -188,7 +187,7 @@ import org.slf4j.LoggerFactory;
         Animes animes=new Animes();
 
         String sql = "SELECT * FROM anime WHERE id LIKE ? AND user_id = ?";
-        try(Connection conn = config.getConnection();
+        try(Connection conn = DBCconfig.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql);)
         {
             pstmt.setInt(1, id);
@@ -236,7 +235,7 @@ import org.slf4j.LoggerFactory;
         }
         String sql = "SELECT * FROM anime WHERE user_id = ? AND id IN (" + placeholders.toString() + ")";
 
-        try (Connection conn = config.getConnection();
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -272,7 +271,7 @@ import org.slf4j.LoggerFactory;
             String sql = "UPDATE anime "
                     + "SET anime_name=?, image_path=?, anime_introduction=?, anime_comment=? "
                     + "WHERE id=? AND user_id=?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
             )
             {
@@ -296,7 +295,7 @@ import org.slf4j.LoggerFactory;
         public  static boolean deleteAnime(Integer id)
         {
             String sql = "DELETE FROM anime WHERE id=?";
-            try(Connection conn = config.getConnection();
+            try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
             )
             {
@@ -332,7 +331,7 @@ import org.slf4j.LoggerFactory;
 
         String sql = "DELETE FROM anime WHERE user_id = ? AND id IN (" + placeholders.toString() + ")";
 
-        try (Connection conn = config.getConnection();
+        try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);

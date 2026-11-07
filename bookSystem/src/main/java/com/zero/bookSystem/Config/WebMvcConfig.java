@@ -1,4 +1,4 @@
-package com.zero.bookSystem.DBCconfig;
+package com.zero.bookSystem.Config;
 
 import com.zero.bookSystem.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -8,6 +8,9 @@ public class User {
     public void setId(Integer id) {
         this.id=id;
     }
+    private String role;
+    public String getRole() {return role;}
+    public void setRole(String role) {this.role=role;}
     //账号
     private String username;
     public String getUsername() {

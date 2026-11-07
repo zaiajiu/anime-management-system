@@ -45,8 +45,18 @@ public class LoginInterceptor implements HandlerInterceptor//implements HandlerI
             response.getWriter().write("{\"success\":false,\"message\":\"未登录\"}");
             return false;
         }
+        // 2. ★ 核心校验：如果是访问 /api/admin/ 开头的接口
+        if (uri.startsWith("/api/admin/")) {
+            String role = (String) request.getSession().getAttribute("role");
+            // 如果不是管理员，直接拦截！
+            if (!"ADMIN".equals(role)) {
+                response.setStatus(403); // 403 表示已登录，但无权限
+                response.getWriter().write("{\"success\":false,\"message\":\"无权访问，需要管理员权限\"}");
+                return false;
+            }
+            return true;
+        }
 
-        logger.debug("已登录用户访问：userId={}", userId);
         return true;
     }
 }

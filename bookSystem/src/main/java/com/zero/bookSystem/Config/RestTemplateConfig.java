@@ -1,4 +1,4 @@
-package com.zero.bookSystem.DBCconfig;
+package com.zero.bookSystem.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
