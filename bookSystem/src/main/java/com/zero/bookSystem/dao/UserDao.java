@@ -78,7 +78,6 @@ public class UserDao {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                System.out.println("id:"+rs.getString("id")+" username:"+rs.getString("username")+" avatar:"+rs.getString("avatar"));
                 return new Object[]{
                         rs.getInt("id"),
                         rs.getString("username"),
@@ -123,7 +122,8 @@ public class UserDao {
         try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
-            try(ResultSet rs=pstmt.executeQuery();)
+            ResultSet rs=pstmt.executeQuery();
+            if (rs.next())
             {
                 return rs.getString("password");
             }
@@ -132,6 +132,7 @@ public class UserDao {
             System.out.println(e.getMessage());
             return null;
         }
+        return null;
     }
 
     public  static  boolean updateProfile(String nickName,String signature,String avatarPath,String userName) {

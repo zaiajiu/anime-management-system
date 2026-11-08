@@ -57,9 +57,13 @@ public class UserService {
                 || password == null || password.isEmpty()) {
             return "用户名或密码不能为空";
         }
-        String rawPassword = UserDao.login(username);
+        String dbPassword = UserDao.login(username);
+        System.out.println("USerService61: "+dbPassword);
+
         // 数据库比对
-        if (passwordEncoder.matches(rawPassword,password)){
+        boolean err =passwordEncoder.matches(password,dbPassword);
+        System.out.println("登录检测"+err);
+        if (err){
             return null;
         }
         return "密码错误";

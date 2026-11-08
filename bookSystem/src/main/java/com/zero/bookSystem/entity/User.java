@@ -48,6 +48,15 @@ public class User {
     }
     public void setnickName(String nickName) {this.nickName=nickName;}
 
+    private String createTime;
+    public String getcreateTime() {
+        return createTime;
+    }
+    public void setcreateTime(String createTime) {}
+
+    private String updateTime;
+    public String getupdateTime() {return updateTime;}
+    public void setupdateTime(String updateTime) {this.updateTime=updateTime;}
 
     public void user(){}
     public void user(Integer id,String account,String password,String avatar){
