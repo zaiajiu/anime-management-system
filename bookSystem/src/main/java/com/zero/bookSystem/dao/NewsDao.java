@@ -1,6 +1,6 @@
 package com.zero.bookSystem.dao;
 
-import com.zero.bookSystem.Config.DBCconfig;
+import com.zero.bookSystem.config.DBCconfig;
 import com.zero.bookSystem.entity.DailyNews;
 
 import java.sql.Connection;

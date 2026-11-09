@@ -1,4 +1,4 @@
-package com.zero.bookSystem.Config;
+package com.zero.bookSystem.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

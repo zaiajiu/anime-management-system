@@ -135,7 +135,6 @@ public Result<Void> updateProfile(
     public Result<Void> updatePassword(
             @RequestBody Map<String, String> body,
             HttpServletRequest request) {
-        logger.info("username:"+body.get("username")+" oldPassword:"+body.get("oldPassword"));
         String username = (String) request.getSession().getAttribute("username");
         if (username == null) return Result.fail("未登录");
 

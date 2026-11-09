@@ -1,5 +1,6 @@
 package com.zero.bookSystem.controller;
 
+import com.zero.bookSystem.utils.FileUtils;
 import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.dto.BatchDeleteRequest;
 import com.zero.bookSystem.entity.Animes;
@@ -28,10 +29,10 @@ public class AnimeController {
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
     @Autowired
     private AnimeService animeService;
+    @Autowired
+    private FileUtils fileUtils;
 
-    /** 上传目录（来自 application.properties） */
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
+
 
     @GetMapping("/getSubmitToken")
     public Result<String> getSubmitToken(HttpServletRequest request) {
@@ -54,7 +55,6 @@ public class AnimeController {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         int offset=(page-1)*size;
         List<Animes> data = animeService.listAll(userId,offset,size,sortField,sortOrder);
-        logger.info("传回前端数据数量："+data.size());
         return Result.ok(data);
     }
 
@@ -134,7 +134,7 @@ public class AnimeController {
             // ① 保存文件并得到相对路径
             String imagePath = null;
             if (image != null && !image.isEmpty()) {
-                imagePath = saveFile(image);
+                imagePath = fileUtils.saveFile(image);
             }
 
             // ② 组装实体并入库
@@ -180,11 +180,11 @@ public class AnimeController {
             // 判断有没有传新图
             if (image != null && !image.isEmpty()) {
                 // 存新图
-                String newPath = saveFile(image);
+                String newPath = fileUtils.saveFile(image);
                 anime.setImagePath(newPath);
                 // 删旧图
                 if (old.getImagePath() != null) {
-                    deleteFile(old.getImagePath());
+                    fileUtils.deleteFile(old.getImagePath());
                 }
             } else {
                 // ★ 保留原图：把原路径回填，否则 DAO 会写成 null
@@ -197,25 +197,6 @@ public class AnimeController {
             e.printStackTrace();
             return Result.fail("封面上传失败：" + e.getMessage());
         }
-    }
-
-    // ============================================================
-    // 删除：先删数据库，再删磁盘文件
-    // ============================================================
-    @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Integer id,
-                               HttpServletRequest request) {
-        Integer userId = (Integer) request.getSession().getAttribute("userId");
-        Animes target = animeService.getById(id,userId);
-
-        String err = animeService.delete(id);
-        if (err != null) return Result.fail(err);
-
-        // 数据库删成功后再删文件，避免"文件删了但数据库还在"
-        if (target != null && target.getImagePath() != null) {
-            deleteFile(target.getImagePath());
-        }
-        return Result.ok();
     }
 
     /**
@@ -235,77 +216,10 @@ public class AnimeController {
         if (ids == null || ids.isEmpty()) {
             return Result.fail("没有选择要删除的动漫");
         }
-
-        logger.info("批量删除请求：ids={}, userId={}", ids, userId);
-
-        // 3. 先查出所有需要删除的磁盘文件路径（只查属于自己的）
-        List<String> imagePathsToDelete = new ArrayList<>();
-        List<Animes> animesToDelete = new ArrayList<>();
-        animesToDelete=animeService.getByIds(ids,userId);
-        for (int i = 0; i < animesToDelete.size(); i++) {
-            String path = animesToDelete.get(i).getImagePath();
-            if (path != null) {
-                imagePathsToDelete.add(path);
-            }
-        }
-
-        // 4. 删数据库（Service 层会处理越权及部分失败的情况）
         String err = animeService.deleteBatch(ids, userId);
-        if (err != null) {
-            logger.warn("批量删除失败：ids={}, reason={}", ids, err);
-            return Result.fail(err);
-        }
+        if (err != null) return Result.fail(err);
 
-        // 5. 删磁盘文件（只有数据库删成功了，才去删文件）
-        for (int i = 0; i < imagePathsToDelete.size(); i++) {
-            deleteFile(imagePathsToDelete.get(i));
-        }
-
-        logger.info("批量删除成功：ids={}", ids);
         return Result.ok();
     }
 
-    // ============================================================
-    // 保存文件：UUID 重命名，返回相对 URL
-    // ============================================================
-    private String saveFile(MultipartFile file) throws IOException {
-        // 1. 提取扩展名
-        String original = file.getOriginalFilename();
-        String ext = "";
-        if (original != null && original.contains(".")) {
-            ext = original.substring(original.lastIndexOf(".")).toLowerCase();
-        }
-
-        // 2. UUID 命名，避免重名覆盖
-        String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-
-        // 3. 解析并确保目录存在
-        Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Files.createDirectories(dir);
-
-        // 4. 写入磁盘
-        Path target = dir.resolve(filename);
-        file.transferTo(target.toFile());
-
-        // 5. 返回相对路径（配合 WebMvcConfig）
-        return "/uploads/" + filename;
-    }
-
-    // ============================================================
-    // 删除磁盘文件
-    // ============================================================
-    private void deleteFile(String imagePath) {
-        try {
-            if (imagePath == null || !imagePath.startsWith("/uploads/")) return;
-
-            String filename = imagePath.substring("/uploads/".length());
-            Path target = Paths.get(uploadDir).toAbsolutePath().normalize().resolve(filename);
-
-            Files.deleteIfExists(target);
-            logger.info("磁盘图片删除成功，路径："+target);
-        } catch (IOException e) {
-            // 删文件失败不影响主流程
-            System.err.println("删除图片失败：" + e.getMessage());
-        }
-    }
 }

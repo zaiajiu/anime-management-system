@@ -1,6 +1,6 @@
 package com.zero.bookSystem.dao;
 
-import com.zero.bookSystem.Config.DBCconfig;
+import com.zero.bookSystem.config.DBCconfig;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

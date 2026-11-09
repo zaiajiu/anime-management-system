@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import com.zero.bookSystem.Config.DBCconfig;
+import com.zero.bookSystem.config.DBCconfig;
 
 
 import org.slf4j.Logger;
@@ -291,23 +291,6 @@ import org.slf4j.LoggerFactory;
             }
         }
 
-        //删除单个动漫
-        public  static boolean deleteAnime(Integer id)
-        {
-            String sql = "DELETE FROM anime WHERE id=?";
-            try(Connection conn = DBCconfig.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-            )
-            {
-                pstmt.setInt(1,id);
-                int rows = pstmt.executeUpdate();
-                return rows > 0;
-            }catch (SQLException e) {
-                System.out.println("动漫删除失败！"+e.getMessage());
-                e.printStackTrace();
-                return false;
-            }
-        }
 
     /**
      * 批量删除动漫

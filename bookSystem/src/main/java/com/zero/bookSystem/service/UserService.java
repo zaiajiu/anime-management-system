@@ -1,14 +1,11 @@
 package com.zero.bookSystem.service;
 
-import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.zero.bookSystem.Config.PasswordConfig;
 
 
 @Service

@@ -1,6 +1,6 @@
 package com.zero.bookSystem.dao;
 
-import com.zero.bookSystem.Config.DBCconfig;
+import com.zero.bookSystem.config.DBCconfig;
 import com.zero.bookSystem.entity.UserTheme;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

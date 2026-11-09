@@ -1,4 +1,4 @@
-package com.zero.bookSystem.Config;
+package com.zero.bookSystem.config;
 
 import com.zero.bookSystem.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;

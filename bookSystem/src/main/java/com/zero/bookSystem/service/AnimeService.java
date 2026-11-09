@@ -1,10 +1,13 @@
 package com.zero.bookSystem.service;
 
+import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.controller.AnimeController;
 import com.zero.bookSystem.dao.AnimeDao;
 import com.zero.bookSystem.entity.Animes;
+import com.zero.bookSystem.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.aot.AotServices;
 import org.springframework.stereotype.Service;
 import com.zero.bookSystem.utils.PinyinUtils;
@@ -15,6 +18,8 @@ import java.util.List;
 
 @Service
 public class AnimeService {
+    @Autowired
+    private FileUtils fileUtils;
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
     public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder) {
         return AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
@@ -71,23 +76,38 @@ public class AnimeService {
         return AnimeDao.updateAnime(anime,userId) ? null : "修改失败，请稍后重试";
     }
 
-    public String delete(Integer id) {
-        if (id == null) return "缺少动漫 id";
-        return AnimeDao.deleteAnime(id) ? null : "删除失败，请稍后重试";
-    }
 
     /**
      * 批量删除
      * @return null 表示成功；非 null 是错误原因
      */
     public String deleteBatch(java.util.List<Integer> ids,Integer userId) {
-        if (ids == null || ids.isEmpty()) {
-            return "没有选择要删除的动漫";
+        // 3. 先查出所有需要删除的磁盘文件路径（只查属于自己的）
+        List<String> imagePathsToDelete = new ArrayList<>();
+        List<Animes> animesToDelete = new ArrayList<>();
+        animesToDelete=this.getByIds(ids,userId);
+        for (int i = 0; i < animesToDelete.size(); i++) {
+            String path = animesToDelete.get(i).getImagePath();
+            if (path != null) {
+                imagePathsToDelete.add(path);
+            }
         }
-        int rows = AnimeDao.deleteAnimeBatch(ids,userId);
+        // 4. 删数据库
+        int rows = AnimeDao.deleteAnimeBatch(ids, userId);
         if (rows > 0) {
             return null;
         }
+
+        // 5. 删磁盘文件（只有数据库删成功了，才去删文件）
+        for (int i = 0; i < imagePathsToDelete.size(); i++) {
+            fileUtils.deleteFile(imagePathsToDelete.get(i));
+        }
+
+        if (ids == null || ids.isEmpty()) {
+            return "没有选择要删除的动漫";
+        }
+
         return "删除失败，可能这些动漫已被删除";
     }
+
 }

@@ -1,4 +1,4 @@
-package com.zero.bookSystem.Config;
+package com.zero.bookSystem.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
