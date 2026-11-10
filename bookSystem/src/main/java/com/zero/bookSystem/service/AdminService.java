@@ -67,4 +67,12 @@ public class AdminService {
 
         return "删除失败，可能这些动漫已被删除";
     }
+    public int countAnime() {
+       int count = AdminDao.countAnime();
+        return count;
+    }
+    public int countUser() {
+        int count = AdminDao.countUser();
+        return count;
+    }
 }

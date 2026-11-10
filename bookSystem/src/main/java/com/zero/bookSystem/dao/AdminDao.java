@@ -182,4 +182,34 @@ public class AdminDao {
             return 0;
         }
     }
+    public  static int countAnime(){
+        String sql = "SELECT count(*) FROM anime";
+        try(Connection conn = DBCconfig.getConnection();
+            PreparedStatement pstmt =conn.prepareStatement(sql)){
+            try(ResultSet rs = pstmt.executeQuery()){
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public  static int countUser(){
+        String sql = "SELECT count(*) FROM user";
+        try(Connection conn = DBCconfig.getConnection();
+            PreparedStatement pstmt =conn.prepareStatement(sql)){
+            try(ResultSet rs = pstmt.executeQuery()){
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

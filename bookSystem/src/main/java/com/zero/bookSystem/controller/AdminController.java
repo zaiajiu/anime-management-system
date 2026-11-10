@@ -26,13 +26,8 @@ public class AdminController{
                                              @RequestParam(defaultValue = "id") String sortField,
                                              @RequestParam(defaultValue = "DESC") String sortOrder) {
         String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return Result.fail("未登录");
-        String role = (String) request.getSession().getAttribute("role");
-        if (!role.equals("ADMIN")) {
-            return Result.fail("没有权限！");
-        }
         int offset=(page-1)*size;
-        List<Animes> data = adminService.findAllAnime(page,size,sortField,sortOrder);
+        List<Animes> data = adminService.findAllAnime(offset,size,sortField,sortOrder);
         return Result.ok(data);
 
     }
@@ -43,11 +38,6 @@ public class AdminController{
                                           @RequestParam(defaultValue = "id") String sortField,
                                           @RequestParam(defaultValue = "DESC")  String sortOrder){
         String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return Result.fail("未登录");
-        String role = (String) request.getSession().getAttribute("role");
-        if (!role.equals("ADMIN")) {
-            return Result.fail("没有权限！");
-        }
         int offset=(page-1)*size;
         List<User> data = adminService.findAllUser(offset,size,sortField,sortOrder);
         return Result.ok(data);
@@ -56,13 +46,7 @@ public class AdminController{
     public Result<Void> updataPassword(HttpServletRequest request,
                                        @RequestParam String userName,
                                         @RequestParam String newPassword) {
-        String username = (String) request.getSession().getAttribute("username");
-        if (username == null) return Result.fail("未登录");
-        String role = (String) request.getSession().getAttribute("role");
-        if (!role.equals("ADMIN")) {
-            return Result.fail("没有权限！");
-        }
-        String err = adminService.updatePassword(username, newPassword);
+        String err = adminService.updatePassword(userName, newPassword);
         if (err != null) {
             return Result.fail(err);
         }
@@ -84,6 +68,14 @@ public class AdminController{
         if (err != null) return Result.fail(err);
 
         return Result.ok();
+    }
+    @GetMapping("/countAnime")
+    public Result<Integer> countAnime(HttpServletRequest request) {
+        return Result.ok(adminService.countAnime());
+    }
+    @GetMapping("/countUser")
+    public Result<Integer> countUser(HttpServletRequest request) {
+        return Result.ok(adminService.countUser());
     }
 }
 
