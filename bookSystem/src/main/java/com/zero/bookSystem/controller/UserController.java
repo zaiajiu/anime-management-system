@@ -58,11 +58,13 @@ public class UserController {
         if (info == null) return Result.fail("用户不存在");
         Integer userId = (Integer) info[0];
         String role = (String) info[6];
+        Integer status = (Integer) info[7];
 
         // 3. ★ 把 username 和 userId 都写进 Session
         request.getSession().setAttribute("username", req.getUsername());
         request.getSession().setAttribute("userId", userId);
         request.getSession().setAttribute("role", role);
+        request.getSession().setAttribute("status", status);
 
         // 4. 顺便返回给前端，前端可以展示或存 localStorage（可选）
         Map<String, Object> data = new HashMap<>();

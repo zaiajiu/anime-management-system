@@ -1,5 +1,8 @@
 package com.zero.bookSystem.interceptor;
 
+import com.zero.bookSystem.common.Result;
+import com.zero.bookSystem.common.UserStatus;
+import com.zero.bookSystem.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -45,7 +48,18 @@ public class LoginInterceptor implements HandlerInterceptor//implements HandlerI
             response.getWriter().write("{\"success\":false,\"message\":\"未登录\"}");
             return false;
         }
-        // 2. ★ 核心校验：如果是访问 /api/admin/ 开头的接口
+
+        Integer status = (Integer) request.getSession().getAttribute("status");
+        if (UserStatus.BANNED.equals(status)) {
+            logger.warn("封禁账号拦截拦截：{} {}", method, uri);
+            response.setStatus(403);
+            // 设置响应格式为 JSON，防止中文乱码
+            response.setContentType("application/json;charset=UTF-8");
+            // 手动把 JSON 字符串写回去
+            response.getWriter().write("{\"success\":false,\"message\":\"您的账号已被封禁，请联系管理员\"}");
+            return false; // 拦截请求
+        }
+       //如果是访问 /api/admin/ 开头的接口
         if (uri.startsWith("/api/admin/")) {
             String role = (String) request.getSession().getAttribute("role");
             // 如果不是管理员，直接拦截！
@@ -56,6 +70,7 @@ public class LoginInterceptor implements HandlerInterceptor//implements HandlerI
             }
             return true;
         }
+
 
         return true;
     }

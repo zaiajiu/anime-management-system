@@ -72,7 +72,7 @@ public class UserDao {
      *         查不到返回 null
      */
     public static Object[] getUserInfo(String username) {
-        String sql = "SELECT id, username, avatar, created_at,nickname,signature,role FROM user WHERE username = ?";
+        String sql = "SELECT id, username, avatar, created_at,nickname,signature,role,status,updated_at FROM user WHERE username = ?";
         try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -85,7 +85,9 @@ public class UserDao {
                         rs.getTimestamp("created_at"),
                         rs.getString("nickname"),
                         rs.getString("signature"),
-                        rs.getString("role")
+                        rs.getString("role"),
+                        rs.getInt("status"),
+                        rs.getTimestamp("updated_at")
                 };
             }
         } catch (SQLException e) {
