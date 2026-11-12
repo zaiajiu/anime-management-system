@@ -213,5 +213,31 @@ public class AdminDao {
         return 0;
     }
 
-
+    public static String ban(int id){
+        String sql = "UPDATE user SET status=BANNED WHERE id=?";
+        try(Connection conn = DBCconfig.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, id);
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "error";
+    }
+    public static String unBan(int id){
+        String sql = "UPDATE user SET status=NORMAL Where id=?";
+        try(Connection conn =DBCconfig.getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)){
+            pstmt.setInt(1, id);
+            if(pstmt.executeUpdate()>0){
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "error";
+    }
 }

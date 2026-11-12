@@ -77,5 +77,19 @@ public class AdminController{
     public Result<Integer> countUser(HttpServletRequest request) {
         return Result.ok(adminService.countUser());
     }
+    @PostMapping("/ban")
+    public Result<Void> ban(HttpServletRequest request) {
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        String err= adminService.ban(userId);
+        if (err != null) return Result.fail(err);
+        return Result.ok();
+    }
+    @PostMapping("/unban")
+    public Result<Void> unban(HttpServletRequest request) {
+        Integer userId = (Integer) request.getSession().getAttribute("userId");
+        String err = adminService.unBan(userId);
+        if (err != null) return Result.fail(err);
+        return Result.ok();
+    }
 }
 

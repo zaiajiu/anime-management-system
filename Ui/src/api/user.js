@@ -188,7 +188,6 @@ export function updateProfileApi(nickname, signature, avatarFile) {
  * @returns {Promise<object>}
  */
 export function logoutApi() {
-  logger.info('logoutApi', '调用退出接口');
 
   return postJson('/logout', {});
 }

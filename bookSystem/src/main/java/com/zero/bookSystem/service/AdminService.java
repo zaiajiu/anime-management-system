@@ -8,6 +8,7 @@ import com.zero.bookSystem.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 @Service
@@ -74,5 +75,19 @@ public class AdminService {
     public int countUser() {
         int count = AdminDao.countUser();
         return count;
+    }
+    public String ban(int id) {
+        String err =AdminDao.ban(id);
+        if (err != null) {
+            return err;
+        }
+        return "success";
+    }
+    public String unBan(int id) {
+        String err =AdminDao.unBan(id);
+        if (err != null) {
+            return err;
+        }
+        return "success";
     }
 }
