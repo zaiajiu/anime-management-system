@@ -1,21 +1,16 @@
 package com.zero.bookSystem.controller;
 
-import com.zero.bookSystem.utils.FileUtils;
 import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.dto.BatchDeleteRequest;
 import com.zero.bookSystem.entity.Animes;
 import com.zero.bookSystem.service.AnimeService;
+import com.zero.bookSystem.service.FileStorageService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +25,8 @@ public class AnimeController {
     @Autowired
     private AnimeService animeService;
     @Autowired
-    private FileUtils fileUtils;
-
+    private FileStorageService fileStorageService;
+    String subDirectory ="anime";
 
 
     @GetMapping("/getSubmitToken")
@@ -133,8 +128,9 @@ public class AnimeController {
         try {
             // ① 保存文件并得到相对路径
             String imagePath = null;
+
             if (image != null && !image.isEmpty()) {
-                imagePath = fileUtils.saveFile(image);
+                imagePath = fileStorageService.saveFile(image,subDirectory);
             }
 
             // ② 组装实体并入库
@@ -177,14 +173,15 @@ public class AnimeController {
             anime.setAnimeIntroduction(animeIntroduction);
             anime.setAnimeComment(animeComment);
 
+
             // 判断有没有传新图
             if (image != null && !image.isEmpty()) {
                 // 存新图
-                String newPath = fileUtils.saveFile(image);
+                String newPath = fileStorageService.saveFile(image,subDirectory);
                 anime.setImagePath(newPath);
                 // 删旧图
                 if (old.getImagePath() != null) {
-                    fileUtils.deleteFile(old.getImagePath());
+                    fileStorageService.deleteFile(old.getImagePath());
                 }
             } else {
                 // ★ 保留原图：把原路径回填，否则 DAO 会写成 null

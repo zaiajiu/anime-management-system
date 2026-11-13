@@ -2,6 +2,7 @@ package com.zero.bookSystem.controller;
 
 import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.service.AnimeService;
+import com.zero.bookSystem.service.FileStorageService;
 import com.zero.bookSystem.service.ThemeService;
 import com.zero.bookSystem.entity.UserTheme;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,8 +24,13 @@ public class ThemeController {
     @Autowired
     private ThemeService themeService;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
+
+    String subDirectory = "anime";
 
     @GetMapping("/info")
     public Result<UserTheme> getTheme(HttpServletRequest request) {
@@ -43,23 +49,7 @@ public class ThemeController {
         if (userId == null) return Result.fail("未登录");
 
         try {
-            // 复用你之前的文件保存逻辑
-            String original = image.getOriginalFilename();
-            String ext = original.substring(original.lastIndexOf(".")).toLowerCase();
-            String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-
-            Path dir = Paths.get(uploadDir, "themes").toAbsolutePath().normalize();
-            Files.createDirectories(dir);
-            Path target = dir.resolve(filename);
-            image.transferTo(target.toFile());
-
-            String imagePath = "/uploads/themes/" + filename;
-
-            // 立刻保存到数据库
-            UserTheme theme = new UserTheme();
-            theme.setUserId(userId);
-            theme.setBackgroundImage(imagePath);
-            themeService.saveBackground(theme);
+            String imagePath =fileStorageService.saveFile(image,subDirectory);
 
             return Result.ok(imagePath);
         } catch (IOException e) {

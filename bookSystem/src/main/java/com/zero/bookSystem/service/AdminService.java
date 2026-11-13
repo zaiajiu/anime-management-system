@@ -1,20 +1,17 @@
 package com.zero.bookSystem.service;
 
 import com.zero.bookSystem.dao.AdminDao;
-import com.zero.bookSystem.dao.AnimeDao;
 import com.zero.bookSystem.entity.Animes;
 import com.zero.bookSystem.entity.User;
-import com.zero.bookSystem.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 @Service
 public class AdminService {
     @Autowired
-    private FileUtils fileUtils;
+    private FileStorageService fileStorageService;
     @Autowired
     private AnimeService animeService;
     public List<Animes> findAllAnime(int offset,int size,String sortField,String sortOrder) {
@@ -59,7 +56,12 @@ public class AdminService {
 
         // 5. 删磁盘文件（只有数据库删成功了，才去删文件）
         for (int i = 0; i < imagePathsToDelete.size(); i++) {
-            fileUtils.deleteFile(imagePathsToDelete.get(i));
+            try {
+                fileStorageService.deleteFile(imagePathsToDelete.get(i));
+            }catch (Exception e){
+                System.out.println(e);
+            }
+
         }
 
         if (ids == null || ids.isEmpty()) {

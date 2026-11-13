@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
             try(Connection conn = DBCconfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);)
             {
-                System.out.println(z);
                 pstmt.setString(1, z.getImagePath());
                 pstmt.setString(2, z.getAnimeName());
                 pstmt.setString(3, z.getAnimeIntroduction());
@@ -127,8 +126,6 @@ import org.slf4j.LoggerFactory;
                 System.out.println("查询失败！" + e.getMessage());
                 e.printStackTrace();
             }
-            logger.info("数据库查询全部动漫共"+AnimesListAll.size()+"条");
-            System.out.println(AnimesListAll);
             return AnimesListAll;
         }
 

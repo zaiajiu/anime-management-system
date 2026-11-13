@@ -1,25 +1,21 @@
 package com.zero.bookSystem.service;
 
-import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.controller.AnimeController;
 import com.zero.bookSystem.dao.AnimeDao;
 import com.zero.bookSystem.entity.Animes;
-import com.zero.bookSystem.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.aot.AotServices;
 import org.springframework.stereotype.Service;
 import com.zero.bookSystem.utils.PinyinUtils;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class AnimeService {
     @Autowired
-    private FileUtils fileUtils;
+    private FileStorageService fileStorageService;
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
     public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder) {
         return AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
@@ -86,21 +82,29 @@ public class AnimeService {
         List<String> imagePathsToDelete = new ArrayList<>();
         List<Animes> animesToDelete = new ArrayList<>();
         animesToDelete=this.getByIds(ids,userId);
+
         for (int i = 0; i < animesToDelete.size(); i++) {
             String path = animesToDelete.get(i).getImagePath();
             if (path != null) {
                 imagePathsToDelete.add(path);
             }
         }
+        System.out.println("删磁盘路径："+imagePathsToDelete);
         // 4. 删数据库
         int rows = AnimeDao.deleteAnimeBatch(ids, userId);
-        if (rows > 0) {
-            return null;
+        if (rows <= 0) {
+            return "err";
         }
 
         // 5. 删磁盘文件（只有数据库删成功了，才去删文件）
         for (int i = 0; i < imagePathsToDelete.size(); i++) {
-            fileUtils.deleteFile(imagePathsToDelete.get(i));
+            try{
+                System.out.println("准备删磁盘："+imagePathsToDelete.get(i));
+                fileStorageService.deleteFile(imagePathsToDelete.get(i));
+            }catch (Exception e){
+                System.out.println(e);
+            }
+
         }
 
         if (ids == null || ids.isEmpty()) {

@@ -4,6 +4,7 @@ import com.zero.bookSystem.common.Result;
 import com.zero.bookSystem.dto.LoginRequest;
 import com.zero.bookSystem.dto.RegisterRequest;
 import com.zero.bookSystem.dto.UpdateProfileRequest;
+import com.zero.bookSystem.service.FileStorageService;
 import com.zero.bookSystem.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,15 +29,24 @@ import java.util.Arrays;
 @RequestMapping("/api/user")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class UserController {
+
+    String subDirectory = "user";
     Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
-    /** 上传目录（来自 application.properties） */
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    /**
+     * 上传目录（来自 application.properties）
+     */
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    /** 注册 */
+    /**
+     * 注册
+     */
     @PostMapping("/register")
     public Result<Void> register(@RequestBody RegisterRequest req) {
         String err = userService.register(
@@ -74,21 +84,24 @@ public class UserController {
         return Result.ok(data);
     }
 
-    /** 退出 */
+    /**
+     * 退出
+     */
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest request) {
         request.getSession().invalidate();
         return Result.ok();
     }
 
-    /** 当前登录用户信息 */
+    /**
+     * 当前登录用户信息
+     */
     @GetMapping("/info")
     public Result<Map<String, Object>> info(HttpServletRequest request) {
         String username = (String) request.getSession().getAttribute("username");
         if (username == null) return Result.fail("未登录");
 
         Object[] info = userService.getUserInfo(username);
-        logger.info("返回的更新数据"+Arrays.toString(info));
         if (info == null) return Result.fail("用户不存在");
 
         Map<String, Object> data = new HashMap<>();
@@ -101,38 +114,40 @@ public class UserController {
 
         return Result.ok(data);
     }
-//修改个人信息
-@PostMapping("/updateProfile")
-public Result<Void> updateProfile(
-        @RequestParam("nickname") String nickname,
-        @RequestParam(value = "signature", required = false) String signature,
-        @RequestParam(value = "avatar", required = false) MultipartFile avatar,
-        HttpServletRequest request
-) {
-    String userName = (String) request.getSession().getAttribute("username");
-    if (userName == null) return Result.fail("未登录");
 
-    String avatarPath = null;
-    if (avatar == null) {
-        Object[] info = userService.getUserInfo(userName);
-        avatarPath = (String) info[2];
-    }
-    if (avatar != null && !avatar.isEmpty()) {
-        try {
-            // 复用你写好的 saveFile 逻辑（如果在 AnimeController 里，需要抽成公共工具类，或者在这里重新写一段保存逻辑）
-            avatarPath = saveFile(avatar);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return Result.fail("头像上传失败");
+    //修改个人信息
+    @PostMapping("/updateProfile")
+    public Result<Void> updateProfile(
+            @RequestParam("nickname") String nickname,
+            @RequestParam(value = "signature", required = false) String signature,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar,
+            HttpServletRequest request
+    ) {
+        String userName = (String) request.getSession().getAttribute("username");
+        if (userName == null) return Result.fail("未登录");
+
+        String avatarPath = null;
+        if (avatar == null) {
+            Object[] info = userService.getUserInfo(userName);
+            avatarPath = (String) info[2];
         }
+        if (avatar != null && !avatar.isEmpty()) {
+            try {
+                avatarPath = fileStorageService.saveFile(avatar, subDirectory);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Result.fail("头像上传失败");
+            }
+        }
+
+        // 调用 Service 更新（如果 avatarPath 是 null，说明没传新图，DAO 里做一下判空，不要更新头像字段）
+        String err = userService.updateProfile(nickname, signature, avatarPath, userName);
+        return err == null ? Result.ok() : Result.fail(err);
     }
 
-    // 调用 Service 更新（如果 avatarPath 是 null，说明没传新图，DAO 里做一下判空，不要更新头像字段）
-    String err = userService.updateProfile(nickname, signature, avatarPath, userName);
-    return err == null ? Result.ok() : Result.fail(err);
-}
-
-    /** 修改密码 */
+    /**
+     * 修改密码
+     */
     @PostMapping("/updatePassword")
     public Result<Void> updatePassword(
             @RequestBody Map<String, String> body,
@@ -144,50 +159,4 @@ public Result<Void> updateProfile(
                 username, body.get("oldPassword"), body.get("newPassword"));
         return err == null ? Result.ok() : Result.fail(err);
     }
-
-
-    // ============================================================
-// 保存文件：UUID 重命名，返回相对 URL
-// ============================================================
-    private String saveFile(MultipartFile file) throws IOException {
-        // 1. 提取扩展名
-        String original = file.getOriginalFilename();
-        String ext = "";
-        if (original != null && original.contains(".")) {
-            ext = original.substring(original.lastIndexOf(".")).toLowerCase();
-        }
-
-        // 2. UUID 命名，避免重名覆盖
-        String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-
-        // 3. 解析并确保目录存在
-        Path dir = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Files.createDirectories(dir);
-
-        // 4. 写入磁盘
-        Path target = dir.resolve(filename);
-        file.transferTo(target.toFile());
-
-        // 5. 返回相对路径（配合 WebMvcConfig）
-        return "/uploads/" + filename;
-    }
-
-    // ============================================================
-// 删除磁盘文件
-// ============================================================
-    private void deleteFile(String imagePath) {
-        try {
-            if (imagePath == null || !imagePath.startsWith("/uploads/")) return;
-
-            String filename = imagePath.substring("/uploads/".length());
-            Path target = Paths.get(uploadDir).toAbsolutePath().normalize().resolve(filename);
-
-            Files.deleteIfExists(target);
-            logger.info("磁盘图片删除成功，路径："+target);
-        } catch (IOException e) {
-            // 删文件失败不影响主流程
-            System.err.println("删除图片失败：" + e.getMessage());
-        }
-    }
 }
-
