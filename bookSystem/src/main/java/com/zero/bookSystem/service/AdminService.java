@@ -4,6 +4,7 @@ import com.zero.bookSystem.dao.AdminDao;
 import com.zero.bookSystem.entity.Animes;
 import com.zero.bookSystem.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ public class AdminService {
     @Autowired
     private FileStorageService fileStorageService;
     @Autowired
-    private AnimeService animeService;
+    private BCryptPasswordEncoder passwordEncoder;
     public List<Animes> findAllAnime(int offset,int size,String sortField,String sortOrder) {
         return AdminDao.findAllAnime(offset,size,sortField,sortOrder);
     }
@@ -27,7 +28,8 @@ public class AdminService {
 
             return "账号或密码不能为空";
         }
-        if(AdminDao.updatePassword(username, password)){
+        String BCryptPassword = passwordEncoder.encode(password);
+        if(AdminDao.updatePassword(username, BCryptPassword)){
             return null;
         }
         return "fail";
@@ -38,7 +40,6 @@ public class AdminService {
         return  AdminDao.getAnimeIds(ids);
     }
     public String deleteBatch(java.util.List<Integer> ids) {
-        // 3. 先查出所有需要删除的磁盘文件路径（只查属于自己的）
         List<String> imagePathsToDelete = new ArrayList<>();
         List<Animes> animesToDelete = new ArrayList<>();
         animesToDelete=this.getByIds(ids);
@@ -48,13 +49,13 @@ public class AdminService {
                 imagePathsToDelete.add(path);
             }
         }
-        // 4. 删数据库
+
         int rows = AdminDao.deleteAnimeBatch(ids);
-        if (rows > 0) {
-            return null;
+        System.out.println(rows);
+        if (rows <= 0) {
+            return "数据库删除失败";
         }
 
-        // 5. 删磁盘文件（只有数据库删成功了，才去删文件）
         for (int i = 0; i < imagePathsToDelete.size(); i++) {
             try {
                 fileStorageService.deleteFile(imagePathsToDelete.get(i));
@@ -68,7 +69,7 @@ public class AdminService {
             return "没有选择要删除的动漫";
         }
 
-        return "删除失败，可能这些动漫已被删除";
+        return null;
     }
     public int countAnime() {
        int count = AdminDao.countAnime();

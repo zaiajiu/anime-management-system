@@ -8,8 +8,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Home, Settings,createIcons, Monitor,User} from "lucide-react"
+import { Home, Settings, Monitor, User, Shield } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
+import { getRole } from "@/utils/auth"
 const items = [
   { title: "个人中心", url: "/profile", icon: User },
   { title: "首页", url: "/", icon: Home },
@@ -19,6 +20,11 @@ const items = [
 
 export function AppSidebar() {
   const { pathname } = useLocation();
+  const role = getRole();
+  const navItems = role === "ADMIN"
+    ? items.concat([{ title: "管理后台", url: "/admin", icon: Shield }])
+    : items;
+
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
@@ -26,7 +32,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>导航</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                   

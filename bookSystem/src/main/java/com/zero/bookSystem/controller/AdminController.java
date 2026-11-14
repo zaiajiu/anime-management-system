@@ -59,7 +59,7 @@ public class AdminController{
         // 1. 获取当前用户
         Integer userId = (Integer) request.getSession().getAttribute("userId");
 
-        // 2. 获取要删除的 ID 列表（并判空，防止后面的死循环）
+        // 2. 获取要删除的 ID 列表
         List<Integer> ids = req.getIds();
         if (ids == null || ids.isEmpty()) {
             return Result.fail("没有选择要删除的动漫");
@@ -78,15 +78,16 @@ public class AdminController{
         return Result.ok(adminService.countUser());
     }
     @PostMapping("/ban")
-    public Result<Void> ban(HttpServletRequest request) {
-        Integer userId = (Integer) request.getSession().getAttribute("userId");
+    public Result<Void> ban(HttpServletRequest request,
+                            Integer userId) {
+
         String err= adminService.ban(userId);
         if (err != null) return Result.fail(err);
         return Result.ok();
     }
     @PostMapping("/unban")
-    public Result<Void> unban(HttpServletRequest request) {
-        Integer userId = (Integer) request.getSession().getAttribute("userId");
+    public Result<Void> unban(HttpServletRequest request,
+                              Integer userId) {
         String err = adminService.unBan(userId);
         if (err != null) return Result.fail(err);
         return Result.ok();

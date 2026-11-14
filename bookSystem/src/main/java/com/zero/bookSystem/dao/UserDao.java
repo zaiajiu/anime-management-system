@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 /**
  * 用户数据访问层（DAO）
  * 所有方法都是 static，供 Service 直接调用
- * 注意：这里保持你原有风格——密码明文存储/比对
  */
 public class UserDao {
 

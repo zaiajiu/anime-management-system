@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { loginApi, registerApi } from '@/api/user';
-import { setToken, setUserId, setUsername } from '@/utils/auth';
+import { setToken, setUserId, setUsername, setRole } from '@/utils/auth';
 import logger from '@/utils/logger';
 import { toast } from 'sonner';
 
@@ -145,6 +145,7 @@ export default function LoginPage() {
         setToken('session-' + Date.now());
         setUserId(res.data.userId);
         setUsername(res.data.username);
+        setRole(res.data.role);
 
         navigate(from, { replace: true });
       })

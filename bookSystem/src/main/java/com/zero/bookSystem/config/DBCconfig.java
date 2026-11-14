@@ -11,7 +11,7 @@ import java.sql.SQLException;
  */
 public class DBCconfig {
 
-    // 数据库地址：book_system 是库名，按你实际的改
+    // 数据库地址：book_system 是库名
     // useSSL=false 关闭 SSL；serverTimezone 指定时区；characterEncoding 指定编码
     private static final String URL =
             "jdbc:mysql://localhost:3306/anime_stystem" +
@@ -20,7 +20,7 @@ public class DBCconfig {
     // 数据库用户名
     private static final String USER = "root";
 
-    // 数据库密码：⚠️ 改成你自己的
+    // 数据库密码
     private static final String PASSWORD = "123456";
 
     /**

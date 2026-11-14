@@ -4,6 +4,7 @@ import logger from '@/utils/logger';
 var TOKEN_KEY = 'token';
 var USER_ID_KEY = 'userId';
 var USERNAME_KEY = 'username';
+var ROLE_KEY = 'role'
 
 /**
  * 读取 token
@@ -77,6 +78,18 @@ export function setUsername(name) {
   localStorage.setItem(USERNAME_KEY, name);
 }
 
+export function getRole(){
+  var value =localStorage.getItem(ROLE_KEY);
+  if(value === null){
+    return '';
+  }
+  return value;
+}
+
+export function setRole(role){
+  localStorage.setItem(ROLE_KEY,role);
+}
+
 /**
  * ★ 清空所有登录信息
  * AuthRoute 发现后端未登录时调这个
@@ -86,4 +99,5 @@ export function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_ID_KEY);
   localStorage.removeItem(USERNAME_KEY);
+  localStorage.removeItem(ROLE_KEY);
 }

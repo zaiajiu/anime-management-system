@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zero.bookSystem.common.UserStatus.BANNED;
+import static com.zero.bookSystem.common.UserStatus.NORMAL;
+
 public class AdminDao {
     //查询所有动漫
     public static List<Animes> findAllAnime(int offset,int size,String sortField,String sortOrder) {
@@ -25,11 +28,11 @@ public class AdminDao {
         else if("updateTime".equals(sortField)){
             dbColumn = "update_time";
         }
-        String order="DESE";
-        if(sortOrder.equals("ASC")){
-            order="ASC";
+        String order = "DESC";
+        if ("ASC".equalsIgnoreCase(sortOrder)) {
+            order = "ASC";
         }
-        String sql = "SELECT * FROM anime ORDER BY"+dbColumn+" "+order+" LIMIT ?,?";
+        String sql = "SELECT * FROM anime ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
         try(Connection conn = DBCconfig.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
             pstmt .setInt(1, offset);
@@ -66,11 +69,12 @@ public class AdminDao {
         else if("updateTime".equals(sortField)){
             dbColumn = "update_time";
         }
-        String order="ASC";
-        if(sortOrder.equals("ASC")){
-            order="ASC";
+
+        String order = "DESC";
+        if ("ASC".equalsIgnoreCase(sortOrder)) {
+            order = "ASC";
         }
-        String sql = "SELECT * FROM user WHERE "+dbColumn+" "+order+" LIMIT ?,?";
+        String sql = "SELECT * FROM user  ORDER BY "+dbColumn+" "+order+" LIMIT ?, ?";
         try(Connection conn = DBCconfig.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
             pstmt.setInt(1, offset);
@@ -83,8 +87,8 @@ public class AdminDao {
                     user.setnickName(rs.getString("nickname"));
                     user.setavatar(rs.getString("avatar"));
                     user.setsignature(rs.getString("signature"));
-                    user.setcreateTime(rs.getString("create_time"));
-                    user.setupdateTime(rs.getString("update_time"));
+                    user.setcreateTime(rs.getString("created_at"));
+                    user.setupdateTime(rs.getString("updated_at"));
                     users.add(user);
                 }
             }
@@ -172,7 +176,7 @@ public class AdminDao {
         try (Connection conn = DBCconfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < ids.size(); i++) {
-                pstmt.setInt(i + 2, ids.get(i));
+                pstmt.setInt(i + 1, ids.get(i));
             }
 
             int rows = pstmt.executeUpdate();
@@ -214,7 +218,7 @@ public class AdminDao {
     }
 
     public static String ban(int id){
-        String sql = "UPDATE user SET status=BANNED WHERE id=?";
+        String sql = "UPDATE user SET status = " + BANNED + " WHERE id = ?";
         try(Connection conn = DBCconfig.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)){
             pstmt.setInt(1, id);
@@ -228,7 +232,7 @@ public class AdminDao {
         return "error";
     }
     public static String unBan(int id){
-        String sql = "UPDATE user SET status=NORMAL Where id=?";
+        String sql = "UPDATE user SET status = " + NORMAL + " WHERE id = ?";
         try(Connection conn =DBCconfig.getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql)){
             pstmt.setInt(1, id);
