@@ -1,10 +1,9 @@
-import logger from '@/utils/logger';
 
 const BASE_URL = 'http://localhost:8080/api/anime';
 
 function checkResponseStatus(response) {
   if (response.ok === false) {
-    logger.error('animeApi', 'HTTP 状态异常', { status: response.status });
+    console.log('animeApi', 'HTTP 状态异常', { status: response.status });
     throw new Error('网络错误：' + response.status);
   }
   return response;
@@ -12,7 +11,7 @@ function checkResponseStatus(response) {
 
 function checkLoginStatus(json) {
   if (json.success === false && json.message === '未登录') {
-    logger.warn('animeApi', '未登录，跳转登录页');
+    console.log('animeApi', '未登录，跳转登录页');
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
@@ -31,7 +30,7 @@ export async function fetchGetSubmitToken(){
       return json;
     })
     .catch(function (error) {
-      logger.error('animeApi', '获取token失败', error);
+      console.log('animeApi', '获取token失败', error);
       throw error;
     });
   
@@ -55,7 +54,7 @@ export function fetchAnimeList(page,sortField,sortOrder) {
       return json;
     })
     .catch(function (error) {
-      logger.error('animeApi', '获取列表失败', error);
+      console.log('animeApi', '获取列表失败', error);
       throw error;
     });
 }
@@ -75,7 +74,7 @@ export function fetchAnimeCount() {
       return json;
     })
     .catch(function (error) {
-      logger.error('animeApi', '获取总数失败', error);
+      console.log('animeApi', '获取总数失败', error);
       throw error;
     });
 }
@@ -94,11 +93,11 @@ export function fetchAnimeByName(animeName,page,sortField,sortOrder) {
     .then(function (response) { return response.json(); })
     .then(function (json) {
       json = checkLoginStatus(json);
-      logger.info('animeApi', '获取动漫成功', json);
+      console.log('animeApi', '获取动漫成功', json);
       return json;
     })
     .catch(function (error) {
-      logger.error('animeApi', '按名称搜索失败', error);
+      console.log('animeApi', '按名称搜索失败', error);
       throw error;
     });
     
@@ -125,7 +124,7 @@ export function createAnime(params) {
   formData.append('animeName', params.animeName);
   formData.append('animeIntroduction', params.animeIntroduction || '');
   formData.append('animeComment', params.animeComment || '');
-  logger.info("animeApi","token:",params.token);
+  console.log("animeApi","token:",params.token);
   if (params.Token) formData.append('token',params.Token);
   if (params.image) formData.append('image', params.image);
 

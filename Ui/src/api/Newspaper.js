@@ -1,9 +1,8 @@
-import logger from '@/utils/logger';
 
 const BASE_URL = 'http://localhost:8080/api/news';
 function checkResponseStatus(response) {
   if (response.ok === false) {
-    logger.error('NewspaperApi', 'HTTP 状态异常', { status: response.status });
+    console.log('NewspaperApi', 'HTTP 状态异常', { status: response.status });
     throw new Error('网络错误：' + response.status);
   }
   return response;
@@ -28,7 +27,7 @@ export function getNewspaperNews() {
       return json;
     })
     .catch(function (error) {
-      logger.error('NewspaperApi', '获取报文失败', error);
+      console.log('NewspaperApi', '获取报文失败', error);
       throw error;
     });
 }

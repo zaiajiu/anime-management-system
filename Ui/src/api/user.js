@@ -1,13 +1,9 @@
-import logger from '@/utils/logger';
+
 
 // ============================================================
 // 配置区
 // ============================================================
-
 // 后端地址
-// 如果 application.properties 里配了 context-path
-// 比如 server.servlet.context-path=/bookSystem
-// 那么这里要改成 'http://localhost:8080/bookSystem/api/user'
 var BASE_URL = 'http://localhost:8080/api/user';
 
 
@@ -39,7 +35,7 @@ function postJson(path, data) {
     // 第二步：检查响应状态
     .then(function (response) {
       if (response.ok === false) {
-        logger.error('postJson', 'HTTP 状态异常', {
+        console.log('postJson', 'HTTP 状态异常', {
           url: fullUrl,
           status: response.status
         });
@@ -57,7 +53,7 @@ function postJson(path, data) {
     })
     // 第五步：捕获任何异常
     .catch(function (error) {
-      logger.error('postJson', '请求过程出现异常', {
+      console.log('postJson', '请求过程出现异常', {
         url: fullUrl,
         error: error
       });
@@ -72,7 +68,7 @@ function postJson(path, data) {
 
 /**
  * 发送 GET 请求
- * @param {string} path 相对路径，比如 '/info'
+ * @param {string} path 相对路径
  * @returns {Promise<object>} 后端返回的 JSON 对象
  */
 function getJson(path) {
@@ -85,7 +81,7 @@ function getJson(path) {
   })
     .then(function (response) {
       if (response.ok === false) {
-        logger.error('getJson', 'HTTP 状态异常', {
+        console.log('getJson', 'HTTP 状态异常', {
           url: fullUrl,
           status: response.status
         });
@@ -100,7 +96,7 @@ function getJson(path) {
       return json;
     })
     .catch(function (error) {
-      logger.error('getJson', '请求过程出现异常', {
+      console.log('getJson', '请求过程出现异常', {
         url: fullUrl,
         error: error
       });
