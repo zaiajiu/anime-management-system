@@ -8,7 +8,7 @@ export default function App() {
     <div className='flex min-h-screen bg-slate-100 p-4 gap-4 overflow-hidden'>
       {/*左侧导航栏 */}
       <aside className = "w-64 bg-slate-900 text-white p-4 shrink-0 rounded-xl shadow-sm flex flex-col">
-        <h2 className='text-xl font-bold mb-8 pl-2'>Anime</h2>
+        <h2 className='text-xl font-bold mb-8 pl-2 select-none'>Anime</h2>
         <nav className='flex flex-col gap-2'>
           {/**首页导航按钮 */}
           <Button

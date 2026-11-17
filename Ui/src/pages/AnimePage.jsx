@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchAnimeList } from '@/api/anime'
+import AnimeCard from '@/components/AnimeCard';
 export default function LoginPage() {
   var listState = useState([]);
   var list = listState[0];
@@ -16,7 +17,7 @@ export default function LoginPage() {
   console.log("当前动漫列表数据：", list);
   return (
     <div>
-      <h1>My Anime</h1>
+      <AnimeCard anime={{animeName:'测试',image:''}} />
     </div>
   );
 }
