@@ -4,9 +4,15 @@ import { Card } from '@/components/ui/card'
 import { ImageOff } from 'lucide-react'
 
 export default function AnimeCard({ anime }) {
+  var BACKEND = 'http://localhost:8080';
   const [imgError, setImgError] = useState(false)
-  const showFallback = !anime.image || imgError
-
+  const showFallback = !anime.imagePath || imgError
+  function getImageUrl(path) {
+    if (!path) return getDefaultImage('未上传');
+    if (path.indexOf('http') === 0) return path;
+    return BACKEND + path;
+  }
+  console.log(getImageUrl(anime.imagePath))
   return (
     <Card className="w-48 h-64 p-0 overflow-hidden relative group border-0 rounded-lg transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 active:scale-95 active:shadow-md cursor-pointer">
       {/* 图片 / 兜底图容器：统一放大 + 过渡 */}
@@ -17,7 +23,7 @@ export default function AnimeCard({ anime }) {
           </div>
         ) : (
           <img
-            src={anime.image}
+            src={getImageUrl(anime.imagePath)}
             alt={anime.animeName}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover"

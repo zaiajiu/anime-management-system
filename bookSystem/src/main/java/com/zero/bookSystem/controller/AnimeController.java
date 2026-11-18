@@ -50,6 +50,9 @@ public class AnimeController {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         int offset=(page-1)*size;
         List<Animes> data = animeService.listAll(userId,offset,size,sortField,sortOrder);
+//        System.out.println("查询字段："+sortField);
+//        System.out.println("查询顺序："+sortOrder);
+//        System.out.println("查询动漫："+data);
         return Result.ok(data);
     }
 

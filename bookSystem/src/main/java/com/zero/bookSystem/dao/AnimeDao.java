@@ -174,7 +174,7 @@ import org.slf4j.LoggerFactory;
                 System.out.println("查询失败！" + e.getMessage());
                 e.printStackTrace();
             }
-            logger.info("按名字获取动漫数量："+AnimesList.size());
+//            logger.info("按名字获取动漫："+AnimesList);
             return AnimesList;
         }
 

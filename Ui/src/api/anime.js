@@ -27,6 +27,7 @@ export async function fetchGetSubmitToken(){
     .then(function (response) { return response.json(); })
     .then(function (json) {
       json = checkLoginStatus(json);
+      console.log("tokenJson: ",json)
       return json;
     })
     .catch(function (error) {
@@ -118,14 +119,15 @@ export function fetchAnimeById(id) {
     .then(function (res) { return res.json(); })
     .then(function (json) { return checkLoginStatus(json); });
 }
-
+//添加接口
 export function createAnime(params) {
   var formData = new FormData();
   formData.append('animeName', params.animeName);
   formData.append('animeIntroduction', params.animeIntroduction || '');
   formData.append('animeComment', params.animeComment || '');
   console.log("animeApi","token:",params.token);
-  if (params.Token) formData.append('token',params.Token);
+  console.log("params: ",params.animeName)
+  if (params.token) formData.append('token',params.token);
   if (params.image) formData.append('image', params.image);
 
   return fetch(BASE_URL, { method: 'POST', credentials: 'include', body: formData })
