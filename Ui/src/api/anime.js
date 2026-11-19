@@ -1,6 +1,4 @@
-
 const BASE_URL = 'http://localhost:8080/api/anime';
-
 function checkResponseStatus(response) {
   if (response.ok === false) {
     console.log('animeApi', 'HTTP 状态异常', { status: response.status });
@@ -111,7 +109,7 @@ export async function fetchAnimeCountByName(animeName) {
 }
 
 // ============================================================
-// 4. 其他接口
+// 4. 按‘id获取单个动漫，详情页使用
 // ============================================================
 export function fetchAnimeById(id) {
   return fetch(BASE_URL + '/' + id, { method: 'GET', credentials: 'include' })

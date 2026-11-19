@@ -21,7 +21,7 @@ export default function LoginPage() {
         alert('登录失败：' + res.message);
       }
     }).catch(function(error){
-        alert('5xx')
+        alert("4xx")
     });
     };
     

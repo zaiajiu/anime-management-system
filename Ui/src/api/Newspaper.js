@@ -1,4 +1,3 @@
-
 const BASE_URL = 'http://localhost:8080/api/news';
 function checkResponseStatus(response) {
   if (response.ok === false) {

@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import './App.css'
 import { Button } from './components/ui/button'
 import { Home, Monitor, Settings } from 'lucide-react';
+import { Toaster } from '@/components/ui/sonner'
 export default function App() {
   var location = useLocation();
   return (
@@ -32,6 +33,7 @@ export default function App() {
       <main className='flex-1 bg-slate-50 p-6 rounded-xl shadow-sm overflow-y-auto'>
         <Outlet/>{/**为跳转页面占位 */}
       </main>
+      <Toaster position="top-center" richColors />
     </div>
   );
 }

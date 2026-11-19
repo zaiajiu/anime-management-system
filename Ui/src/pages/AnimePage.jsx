@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
-import { fetchAnimeList,fetchAnimeByName } from '@/api/anime'
+import { fetchAnimeList,fetchAnimeByName,fetchAnimeCount } from '@/api/anime'
 import AnimeCard from '@/components/AnimeCard';
 import { Input } from '@/components/ui/input'
 import { Plus, Search, ArrowDownWideNarrow, ArrowUpNarrowWide } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination'
 export default function LoginPage() {
   var listState = useState([]);
   var list = listState[0];
@@ -16,16 +26,28 @@ export default function LoginPage() {
   var [searchResult, setSearchResult] = useState([])  // 搜索结果
   var [sortField, setSortField] = useState('id')        // 排序字段，默认 id
   var [sortOrder, setSortOrder] = useState('DESC') // 排序方向，默认倒序
+  // 当前页码，默认第 1 页
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // 后端返回的总条数，用来算总页数
+  const [total, setTotal] = useState(0);
+  // 用于“跳转”输入框的值
+  const [jumpPage, setJumpPage] = useState('');
+
+  // 假设后端固定每页 10 条（你需要把 10 改成后端真实的每页条数）
+  const PAGE_SIZE = 9; 
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
   
   useEffect(function(){
-    fetchAnimeList(1,sortField,sortOrder)
+    fetchAnimeList(currentPage,sortField,sortOrder)
     .then(function(res){
         if(res.success){
-            console.log(res.data)
             setList(res.data);
         }
     });
-  },[sortField, sortOrder]);
+  },[sortField, sortOrder,currentPage]);
+
+
   // 防抖搜索：keyword 变化后 300ms 才请求
   useEffect(() => {
     if (!searchMode) return
@@ -33,16 +55,45 @@ export default function LoginPage() {
       setSearchResult([])
       return
     }
-
     const timer = setTimeout(() => {
-      fetchAnimeByName(keyword.trim(),2,sortField,sortOrder).then((res) => {
+      fetchAnimeByName(keyword.trim(),currentPage,sortField,sortOrder).then((res) => {
         if (res.success) setSearchResult(res.data)
       })
     }, 300)
     // 下次 effect 执行前清掉上一个定时器
     return () => clearTimeout(timer)
-  }, [keyword, searchMode,sortField, sortOrder])
-  const displayList = searchMode ? searchResult : list
+  }, [keyword, searchMode,sortField, sortOrder,currentPage])
+
+
+  useEffect(() => {
+    // 总数
+    fetchAnimeCount().then((res) => {
+        if (res.success) {
+        setTotal(res.data); 
+        }
+    });
+  }, []); 
+
+    // 计算要显示的页码（包含省略号）
+    const getPageNumbers = () => {
+        if (totalPages <= 7) {
+            // 页数少，全部显示
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+
+        // 页数多时：
+        // 1. 当前页靠近开头
+        if (currentPage <= 3) {
+            return [1, 2, 3, 4, '...', totalPages];
+        }
+        // 2. 当前页靠近结尾
+        if (currentPage >= totalPages - 2) {
+            return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        }
+        // 3. 当前页在中间
+        return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        };
+        const displayList = searchMode ? searchResult : list
   
   return (
     
@@ -120,7 +171,94 @@ export default function LoginPage() {
         {searchMode && displayList.length === 0 && (
         <p className="text-slate-500 mt-6">没有找到匹配的动漫</p>
         )}
-      
+        {/* ======= 分页组件 ======= */}
+        {totalPages > 1 && (
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                {/* 分页主体 */}
+                <Pagination>
+                    <PaginationContent>
+                            {/* 上一页 */}
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                    }}
+                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}/>
+                            </PaginationItem>
+
+                        {/* 渲染计算好的页码 */}
+                        {getPageNumbers().map((page, index) => {
+                            // 如果是省略号
+                            if (page === '...') {
+                                return (
+                                    <PaginationItem key={`ellipsis-${index}`}>
+                                        <PaginationEllipsis />
+                                    </PaginationItem>
+                                );
+                            }
+
+                            // 如果是普通页码
+                            return (
+                                <PaginationItem key={page}>
+                                    <PaginationLink
+                                        href="#"
+                                        isActive={currentPage === page}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setCurrentPage(page);
+                                        }}
+                                        className="cursor-pointer"
+                                    >
+                                    {page}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            );
+                        })}
+
+                        {/* 下一页 */}
+                        <PaginationItem>
+                            <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                                }}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+
+        {/* ======= 跳转输入框 ======= */}
+        <div className="flex items-center gap-5 text-sm text-slate-600 ml-4">
+        <span>跳至</span>
+        <input
+            type="number"
+            min="1"
+            max={totalPages}
+            value={jumpPage}
+            onChange={(e) => setJumpPage(e.target.value)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const targetPage = parseInt(jumpPage, 10);
+                    if (targetPage >= 1 && targetPage <= totalPages) {
+                    setCurrentPage(targetPage);
+                    setJumpPage(''); // 跳转后清空输入框
+                    } else {
+                    // 输入越界则重置回当前页
+                    setJumpPage('');
+                    }
+                }
+            }}
+        className="w-14 px-2 py-1.5 border border-slate-300 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+      <span>页</span>
     </div>
-  );
+    
+  </div>
+ )}
+     </div>
+   );
 }

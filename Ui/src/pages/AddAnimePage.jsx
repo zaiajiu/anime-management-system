@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, ImagePlus, Loader2, Save } from 'lucide-react'
 import { createAnime,fetchGetSubmitToken } from '@/api/anime'
+import { toast } from 'sonner'
 
 export default function AddAnimePage() {
   const navigate = useNavigate()
@@ -84,8 +85,10 @@ export default function AddAnimePage() {
         // 直接把对象传给 createAnime
         const res = await createAnime(payload)
         if (res.success) {
-            navigate('/')
+          toast.success("添加成功")
+            navigate('/monitor')
         } else {
+          toast.error("添加失败")
             throw new Error(res.message || '提交失败')
         }
         } catch (err) {

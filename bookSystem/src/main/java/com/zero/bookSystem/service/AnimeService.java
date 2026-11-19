@@ -23,7 +23,9 @@ public class AnimeService {
 
 
     public int count(Integer userId) {
-        return AnimeDao.count(userId);
+        int count=AnimeDao.count(userId);
+        System.out.println("用户："+userId+"获取动漫总数: "+count);
+        return count;
     }
     public int countByName(String animeName,Integer userId) {
         return AnimeDao.countByName(animeName,userId);

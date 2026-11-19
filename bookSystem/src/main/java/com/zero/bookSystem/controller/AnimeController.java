@@ -57,7 +57,7 @@ public class AnimeController {
     }
 
 
-
+//按id获取动漫
     @GetMapping("/{id:[0-9]+}")
     public Result<Animes> getById(@PathVariable Integer id,HttpServletRequest request) {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
@@ -190,7 +190,7 @@ public class AnimeController {
                 // ★ 保留原图：把原路径回填，否则 DAO 会写成 null
                 anime.setImagePath(old.getImagePath());
             }
-
+            System.out.println("修改动漫"+anime);
             String err = animeService.update(anime,userId);
             return err == null ? Result.ok(anime) : Result.fail(err);
         } catch (IOException e) {

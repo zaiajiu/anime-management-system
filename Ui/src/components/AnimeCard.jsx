@@ -1,10 +1,11 @@
-// src/components/AnimeCard.jsx
 import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { ImageOff } from 'lucide-react'
+import { useNavigate } from 'react-router-dom' 
 
 export default function AnimeCard({ anime }) {
   var BACKEND = 'http://localhost:8080';
+  const navigate = useNavigate() 
   const [imgError, setImgError] = useState(false)
   const showFallback = !anime.imagePath || imgError
   function getImageUrl(path) {
@@ -12,9 +13,8 @@ export default function AnimeCard({ anime }) {
     if (path.indexOf('http') === 0) return path;
     return BACKEND + path;
   }
-  console.log(getImageUrl(anime.imagePath))
   return (
-    <Card className="w-48 h-64 p-0 overflow-hidden relative group border-0 rounded-lg transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 active:scale-95 active:shadow-md cursor-pointer">
+    <Card onClick={() => navigate(`/update/${anime.id}`)} className="w-48 h-64 p-0 overflow-hidden relative group border-0 rounded-lg transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 active:scale-95 active:shadow-md cursor-pointer">
       {/* 图片 / 兜底图容器：统一放大 + 过渡 */}
       <div className="w-full h-full transition-transform duration-300 ease-out group-hover:scale-110">
         {showFallback ? (

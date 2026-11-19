@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner'
 import './index.css';
 
 import App from './App';
@@ -8,6 +9,8 @@ import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import AnimePage from './pages/AnimePage';
 import AddAnimePage from './pages/AddAnimePage';
+import UpDateAnimePage  from './pages/UpDateAnimePage';
+
 
 var router = createBrowserRouter([
   {
@@ -16,7 +19,11 @@ var router = createBrowserRouter([
   },
   {
     path: '/add',
-    element: <AddAnimePage />
+    element: <AddAnimePage />,
+  },
+  {
+    path:'/update/:id',
+    element:<UpDateAnimePage />,
   },
   {
     path: '/',
@@ -33,6 +40,5 @@ var router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-    
   </React.StrictMode>
 );
