@@ -117,14 +117,14 @@ export default function LoginPage() {
                             setSearchResult([])
                         }
                     }}
-                    className="pl-9"
+                    className="pl-9 select-none"
                 />
             </div>
             {/* 排序下拉框 */}
                 <select
                     value={sortField}
                     onChange={(e) => setSortField(e.target.value)}
-                    className="px-3 py-2 border border-slate-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    className="px-3 py-2 border border-slate-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 select-none">
                         <option value="id">按 ID</option>
                         <option value="createTime">按创建时间</option>
                         <option value="updateTime">按修改时间</option>
@@ -133,7 +133,7 @@ export default function LoginPage() {
                 {/* 倒序/顺序切换按钮 */}
                 <button
                 onClick={() => setSortOrder((o) => (o === 'DESC' ? 'ASC' : 'DESC'))}
-                className="flex items-center gap-1.5 px-3 py-2 border border-slate-300 rounded-md text-sm bg-white hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 border border-slate-300 rounded-md text-sm bg-white hover:bg-slate-50 transition-colors select-none"
                 title={sortOrder === 'DESC' ? '当前倒序，点击切换正序' : '当前正序，点击切换倒序'}>
                 {sortOrder === 'DESC' ? (
                     <ArrowDownWideNarrow className="w-4 h-4" />
@@ -151,7 +151,7 @@ export default function LoginPage() {
             p-0 overflow-hidden relative group border-0 
             rounded-lg transition-all duration-300 ease-out 
             hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 
-            active:scale-95 active:shadow-md cursor-pointer">
+            active:scale-95 active:shadow-md cursor-pointer select-none">
                 <div className="w-full h-full 
                 flex flex-col items-center 
                 justify-center gap-2 text-slate-400 

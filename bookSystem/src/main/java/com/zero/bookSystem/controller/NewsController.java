@@ -20,7 +20,7 @@ public class NewsController {
     @GetMapping("/Newspaper")
     public Result<Map<String, Object>> getNewspaperNews() {
         DailyNews news = newsService.getTodayNews();
-
+        System.out.println("获取报文"+news);
         if (news == null) {
             return Result.fail("报文生成失败，请稍后重试");
         }
