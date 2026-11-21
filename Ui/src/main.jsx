@@ -5,11 +5,12 @@ import { Toaster } from '@/components/ui/sonner'
 import './index.css';
 
 import App from './App';
-import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
-import AnimePage from './pages/AnimePage';
-import AddAnimePage from './pages/AddAnimePage';
-import UpDateAnimePage  from './pages/UpDateAnimePage';
+import LoginPage from './pages/LoginPage';//登录页
+import HomePage from './pages/HomePage';//主页
+import AnimePage from './pages/AnimePage';//动漫展示页
+import AddAnimePage from './pages/AddAnimePage';//添加页面
+import UpDateAnimePage  from './pages/UpDateAnimePage';//详情页（修改页）
+import ProtectedRoute from './components/ProtectedRoute';//路由守卫
 
 
 var router = createBrowserRouter([
@@ -17,21 +18,15 @@ var router = createBrowserRouter([
     path: '/login',
     element: <LoginPage />,
   },
-  {
-    path: '/add',
-    element: <AddAnimePage />,
-  },
-  {
-    path:'/update/:id',
-    element:<UpDateAnimePage />,
-  },
+  
   {
     path: '/',
     element: <App />, // App 作为主布局（比如包含左侧菜单栏）
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'monitor', element: <AnimePage /> },
-      
+      { path: 'monitor', element: <ProtectedRoute><AnimePage /></ProtectedRoute> },
+      { path: 'add', element: <ProtectedRoute><AddAnimePage /></ProtectedRoute> },
+      { path:'update/:id', element:<ProtectedRoute><UpDateAnimePage /></ProtectedRoute>},
     ],
     
   },

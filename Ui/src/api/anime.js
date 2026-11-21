@@ -1,6 +1,16 @@
 const BASE_URL = 'http://localhost:8080/api/anime';
+import { clearAuth } from '@/utils/auth'; 
+
 function checkResponseStatus(response) {
   if (response.ok === false) {
+    // ★ 如果后端返回 401，说明没登录或 Session 过期了
+    if (response.status === 401) {
+      console.log('animeApi', '未登录或登录已过期，清空本地信息');
+      clearAuth(); // 清空本地假 Token 和角色
+      window.location.href = '/login'; // 强制跳回登录页
+      throw new Error('登录已过期，请重新登录');
+    }
+    
     console.log('animeApi', 'HTTP 状态异常', { status: response.status });
     throw new Error('网络错误：' + response.status);
   }

@@ -28,6 +28,8 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+
+
   // 统一处理输入变化
   const handleLoginChange = (key) => (e) => {
     setLoginData((prev) => ({ ...prev, [key]: e.target.value }))
@@ -36,6 +38,7 @@ export default function LoginPage() {
     setRegisterData((prev) => ({ ...prev, [key]: e.target.value }))
   }
 
+  const from = location.state?.from?.pathname || '/'
   // 登录提交
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -50,12 +53,10 @@ export default function LoginPage() {
     try {
       const res = await loginApi(loginData.username,loginData.password)
       if (res.success) {
+        console.log("登录返回：",res)
         toast.success('登录成功')
-        // 如果后端返回了 token，存在本地
-        if (res.data?.token) {
-          localStorage.setItem('token', res.data.token)
-        }
-        navigate('/') // 跳转首页
+          localStorage.setItem('session-login-' + Date.now())
+        navigate(from, { replace: true }) 
       } else {
         throw new Error(res.message || '登录失败')
       }
