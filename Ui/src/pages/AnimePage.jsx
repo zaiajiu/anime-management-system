@@ -101,8 +101,8 @@ export default function LoginPage() {
         <div className="flex items-center gap-3 mb-6">
             
             {/* 搜索框 */}
-            <div >
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />{/**搜索图标 */}
+            <div className="flex items-center w-full max-w-sm px-3 py-2 border border-slate-300 rounded-md focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all bg-white">
+                <Search className="w-4 h-4 text-slate-400 shrink-0 mr-2" />{/**搜索图标 */}
                 <Input
                     type="text"
                     placeholder="搜索动漫名称..."
@@ -142,7 +142,7 @@ export default function LoginPage() {
                 {sortOrder === 'DESC' ? '倒序' : '正序'}
                 </button>
         </div>
-        <div className='grid grid-cols-5 gap-10 p-6'>
+        <div className='grid grid-cols-5 gap-x-20 gap-y-10 p-6'>
         
         {/**新增卡片 */}
         {!searchMode && (<Card onClick={() => navigate('/add')}

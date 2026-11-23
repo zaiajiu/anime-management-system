@@ -11,12 +11,12 @@ import AnimePage from './pages/AnimePage';//动漫展示页
 import AddAnimePage from './pages/AddAnimePage';//添加页面
 import UpDateAnimePage  from './pages/UpDateAnimePage';//详情页（修改页）
 import ProtectedRoute from './components/ProtectedRoute';//路由守卫
-
+import GuestRoute from './components/GuestRoute';
 
 var router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginPage />,
+    element: <GuestRoute><LoginPage /></GuestRoute>,
   },
   
   {

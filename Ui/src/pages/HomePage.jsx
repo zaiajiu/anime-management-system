@@ -4,10 +4,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Newspaper, LogIn, Sparkles, Loader2 } from 'lucide-react'
 import { getNewspaperNews } from '@/api/Newspaper'
+import { isLogin } from '@/utils/auth'
 
 export default function HomePage() {
   const [news, setNews] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [islogin, setIslogin] = useState(false)
   
 
   useEffect(() => {
@@ -30,6 +32,11 @@ export default function HomePage() {
     return () => { alive = false }
   }, [])
 
+  useEffect(()=>{
+    setIslogin(isLogin());
+  })
+
+
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col">
       {/* 背景装饰 */}
@@ -37,18 +44,22 @@ export default function HomePage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
 
       {/* 顶部导航栏 */}
+
       <header className="relative z-20 w-full border-b border-slate-200/50 bg-white/60 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-indigo-600 font-bold text-lg">
             <Sparkles className="w-5 h-5" />
             <span>Anime</span>
           </div>
+          {!isLogin ? (
           <Button asChild variant="default" className="rounded-full shadow-sm gap-2 px-6">
             <Link to="/login">
               <LogIn className="w-4 h-4" />
               登录/注册
             </Link>
           </Button>
+          ) : (<></>)}
+
         </div>
       </header>
 

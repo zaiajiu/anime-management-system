@@ -55,7 +55,7 @@ export default function LoginPage() {
       if (res.success) {
         console.log("登录返回：",res)
         toast.success('登录成功')
-          localStorage.setItem('session-login-' + Date.now())
+          localStorage.setItem("token",'session-login-' + Date.now())
         navigate(from, { replace: true }) 
       } else {
         throw new Error(res.message || '登录失败')

@@ -1,4 +1,3 @@
-// localStorage 的 key
 var TOKEN_KEY = 'token';
 var USER_ID_KEY = 'userId';
 var USERNAME_KEY = 'username';
@@ -19,7 +18,6 @@ export const removeToken = () => {
 //判断登录状态（是否有token）
 export function isLogin() {
   var token = getToken();
-  console.log("登录状态Token: ",token)
   if (token === null) {
     return false;
   }
