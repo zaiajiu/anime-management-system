@@ -104,8 +104,17 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg border-0 shadow-slate-200">
         {/* 顶部 Logo 和标题 */}
         <CardHeader className="text-center space-y-2 pb-4">
-          <div className="mx-auto w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-2">
-            <Sparkles className="w-6 h-6" />
+          <div className='flex items-center'>
+            <div className="translate-x-8 mx-auto w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-2">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="text-slate-400 hover:text-slate-600"
+              >返回首页</button>
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold text-slate-900">动漫管理系统</CardTitle>
           <CardDescription>登录以管理你的动漫收藏</CardDescription>
