@@ -1,5 +1,6 @@
 package com.zero.bookSystem.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.zero.bookSystem.controller.AnimeController;
 import com.zero.bookSystem.dao.AnimeDao;
 import com.zero.bookSystem.entity.Animes;
@@ -8,17 +9,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.zero.bookSystem.utils.PinyinUtils;
+import com.zero.bookSystem.utils.RedisUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 @Service
 public class AnimeService {
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private RedisUtils redisUtils;
     private static final Logger logger = LoggerFactory.getLogger(AnimeController.class);
     public List<Animes> listAll(Integer userId,int offset,int size,String sortField,String sortOrder) {
-        return AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
+        String key = "userId_"+userId+":offset_"+offset+":size_"+size+":sortField_"+sortField+":sortOrder_"+sortOrder;
+        List<Animes> listAllRedis = new ArrayList<>();
+        listAllRedis = redisUtils.get(key,new TypeReference<List<Animes>>(){});
+        if(listAllRedis==null){
+            listAllRedis = AnimeDao.findAnimeAll(userId,offset,size,sortField,sortOrder);
+            redisUtils.set(key,listAllRedis);
+            System.out.println("数据库查询，数量："+listAllRedis.size());
+            return listAllRedis;
+        }
+        System.out.println("缓存查询，数量："+listAllRedis.size());
+        return listAllRedis;
     }
 
 

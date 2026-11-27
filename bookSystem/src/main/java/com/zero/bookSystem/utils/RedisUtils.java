@@ -1,5 +1,7 @@
 package com.zero.bookSystem.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -8,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisUtils {
+    @Autowired
+    private ObjectMapper objectMapper;
     @Autowired
     private RedisTemplate<String,Object> redisTemplate;
 
@@ -23,8 +27,12 @@ public class RedisUtils {
         }
         return false;
     }
-    public Object get(String key) {
-        return key == null ? null : redisTemplate.opsForValue().get(key);
+    public <T> T get(String key, TypeReference<T> ref)  {
+        if (key == null) {
+            return null;
+        }
+        Object v = redisTemplate.opsForValue().get(key);
+        return objectMapper.convertValue(v, ref);
     }
     public boolean set(String key,Object value){
         try{
