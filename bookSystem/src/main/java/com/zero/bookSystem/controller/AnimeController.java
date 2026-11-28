@@ -63,12 +63,12 @@ public class AnimeController {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         logger.info("查询单个动漫：id={}", id);
 
-        Animes anime = animeService.getById(id,userId);
+        List<Animes> anime = animeService.getById(id,userId);
         if (anime == null) {
             logger.warn("动漫不存在：id={}", id);
             return Result.fail("动漫不存在");
         }
-        return Result.ok(anime);
+        return Result.ok(anime.getFirst());
     }
 
     @GetMapping("/name")
@@ -167,7 +167,7 @@ public class AnimeController {
         Integer userId = (Integer) request.getSession().getAttribute("userId");
         try {
             // 先查原记录
-            Animes old = animeService.getById(id,userId);
+            List<Animes> old = animeService.getById(id,userId);
             if (old == null) return Result.fail("动漫不存在");
 
             Animes anime = new Animes();
@@ -183,12 +183,12 @@ public class AnimeController {
                 String newPath = fileStorageService.saveFile(image,subDirectory);
                 anime.setImagePath(newPath);
                 // 删旧图
-                if (old.getImagePath() != null) {
-                    fileStorageService.deleteFile(old.getImagePath());
+                if (old.getFirst().getImagePath() != null) {
+                    fileStorageService.deleteFile(old.getFirst().getImagePath());
                 }
             } else {
                 // ★ 保留原图：把原路径回填，否则 DAO 会写成 null
-                anime.setImagePath(old.getImagePath());
+                anime.setImagePath(old.getFirst().getImagePath());
             }
             System.out.println("修改动漫"+anime);
             String err = animeService.update(anime,userId);

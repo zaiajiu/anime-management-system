@@ -46,11 +46,20 @@ public class AnimeService {
         return AnimeDao.countByName(animeName,userId);
     }
 
-    /** ★ 按 id 查单条（更新时用） */
-    public Animes getById(Integer id, Integer userId) {
-        if (id == null) return null;
-        if (userId == null) return null;
-        return AnimeDao.findAnimesId(id,userId);
+    /** ★ 按 id 查单条 */
+    public List<Animes> getById(Integer id, Integer userId) {
+    String key = "id_"+id+":userId_"+userId;
+     List<Animes> listAllRedis = redisUtils.get(key, new TypeReference<List<Animes>>() {});
+    if(listAllRedis==null){
+        Animes anime = new Animes();
+        anime = AnimeDao.findAnimesId(id,userId);
+        redisUtils.set(key,anime);
+        List<Animes> animeListAllRedis = new ArrayList<>();
+        animeListAllRedis.add(anime);
+        return animeListAllRedis;
+    }
+        System.out.println("缓存查询，数量："+listAllRedis.size());
+        return listAllRedis;
     }
     //
     public List<Animes> getByIds(java.util.List<Integer> ids,Integer userId) {
